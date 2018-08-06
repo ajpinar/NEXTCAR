@@ -1,0 +1,8 @@
+Set up Beta user
+Username: beta1
+Password: beta1
+
+Set up exchanges
+'StationTx' - The MobileLab will post data to this exchange and the vehicles will consume it
+'Beta1Cont' - Beta 1 will send data to this exchange continuously
+'Beta1Init' - Beta 1 will send data to this exchange on start-up (one time transfer)
