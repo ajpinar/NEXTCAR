@@ -1,0 +1,409 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     13538,        401]
+NotebookOptionsPosition[      9087,        281]
+NotebookOutlinePosition[      9431,        296]
+CellTagsIndexPosition[      9388,        293]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["ARPA-E Project: NEXTCAR", "Title",
+ CellChangeTimes->{{3.7352915407432203`*^9, 3.735291551131094*^9}, {
+  3.735291850375805*^9, 3.7352918539843054`*^9}, {3.7353996457749577`*^9, 
+  3.7353996480988474`*^9}},ExpressionUUID->"33c19ba2-fe53-4cdf-9289-\
+4981797b49cd"],
+
+Cell[CellGroupData[{
+
+Cell["Step 1", "Chapter",
+ CellChangeTimes->{{3.7352918701757298`*^9, 
+  3.7352918719492807`*^9}},ExpressionUUID->"494e1904-407c-4784-bdd6-\
+7ada13522c9e"],
+
+Cell["Download Python", "Section",
+ CellChangeTimes->{{3.735291896396454*^9, 
+  3.7352919013475857`*^9}},ExpressionUUID->"438b8607-8b75-4d6a-bbcd-\
+fb708d065300"],
+
+Cell[CellGroupData[{
+
+Cell["Windows \[Checkmark]", "Subchapter",
+ CellChangeTimes->{{3.735392151413658*^9, 
+  3.735392177878543*^9}},ExpressionUUID->"94c406ec-5d09-4d78-b51d-\
+52021025d909"],
+
+Cell["https://www.python.org/downloads/windows/", "Item",
+ CellChangeTimes->{{3.7353921822952967`*^9, 
+  3.7353921841122956`*^9}},ExpressionUUID->"a05834aa-6721-4bb4-bef6-\
+304041a34b6c"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Mac", "Subchapter",
+ CellChangeTimes->{{3.735392151413658*^9, 
+  3.735392202470461*^9}},ExpressionUUID->"f06a4226-b4ef-4e7f-89d9-\
+dc7ad7aef21f"],
+
+Cell["https://www.python.org/downloads/mac-osx/", "Item",
+ CellChangeTimes->{{3.7353921822952967`*^9, 3.7353921841122956`*^9}, {
+  3.7353922160927916`*^9, 
+  3.735392220513626*^9}},ExpressionUUID->"82cca4be-9e20-4131-89b3-\
+be45dcc23a01"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Step 2", "Chapter",
+ CellChangeTimes->{{3.7352918701757298`*^9, 3.7352918719492807`*^9}, {
+  3.735291920652639*^9, 3.7352919236313157`*^9}, {3.735293169565998*^9, 
+  3.7352931752077627`*^9}},ExpressionUUID->"91beacfa-0e33-415b-9091-\
+fa2d1cb316b2"],
+
+Cell["Download Erlang", "Section",
+ CellChangeTimes->{{3.735291896396454*^9, 3.7352919013475857`*^9}, {
+  3.735293177248968*^9, 
+  3.7352931788826895`*^9}},ExpressionUUID->"c8200d47-1f90-45d7-9d8c-\
+1aa1bba4e691"],
+
+Cell[CellGroupData[{
+
+Cell["Windows \[Checkmark]", "Subchapter",
+ CellChangeTimes->{{3.735392303894828*^9, 
+  3.7353923103718596`*^9}},ExpressionUUID->"b4c4e964-d459-4113-87fa-\
+539e89af00a2"],
+
+Cell["https://www.erlang.org/downloads", "Item",
+ CellChangeTimes->{{3.73539231269413*^9, 
+  3.7353923152434096`*^9}},ExpressionUUID->"e30dd357-1ed0-49c9-b999-\
+a1cd8cacd7a4"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Mac, Homebrew", "Subchapter",
+ CellChangeTimes->{{3.735392303894828*^9, 
+  3.7353923317398176`*^9}},ExpressionUUID->"09f6ac77-461f-4c49-bdc9-\
+b7378e4fc73e"],
+
+Cell["From terminal, brew install erlang", "Item",
+ CellChangeTimes->{{3.73539231269413*^9, 
+  3.7353923466672187`*^9}},ExpressionUUID->"be02be5e-613a-442d-a4d3-\
+011f882e4cec"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Mac, MacPorts", "Subchapter",
+ CellChangeTimes->{{3.735392303894828*^9, 3.7353923103718596`*^9}, {
+  3.7353923515481186`*^9, 
+  3.7353923629530935`*^9}},ExpressionUUID->"53691d8a-bcce-4eca-8605-\
+e25e96067cdd"],
+
+Cell["From terminal, port install erlang", "Item",
+ CellChangeTimes->{{3.73539231269413*^9, 3.7353923152434096`*^9}, {
+  3.7353923684733195`*^9, 
+  3.7353923801180415`*^9}},ExpressionUUID->"ca89a6f6-87ae-44b3-96d0-\
+81271d204fa0"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Ubuntu/Debian", "Subchapter",
+ CellChangeTimes->{{3.735392303894828*^9, 3.7353923103718596`*^9}, {
+  3.7353923845890727`*^9, 
+  3.735392400291112*^9}},ExpressionUUID->"0e4f68bd-ac86-4c72-902a-\
+2568a15057df"],
+
+Cell["From terminal, apt-get install erlang", "Item",
+ CellChangeTimes->{{3.73539231269413*^9, 3.7353923152434096`*^9}, {
+  3.7353924035161896`*^9, 
+  3.735392439737132*^9}},ExpressionUUID->"7346a918-7a19-42d4-bf48-\
+214423b0da31"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Fedora", "Subchapter",
+ CellChangeTimes->{{3.735392303894828*^9, 3.7353923103718596`*^9}, {
+  3.735392442054295*^9, 
+  3.7353924455631824`*^9}},ExpressionUUID->"e449eb63-f446-4295-a3af-\
+d49076f74a5c"],
+
+Cell["From terminal, yum install erlang", "Item",
+ CellChangeTimes->{{3.73539231269413*^9, 3.7353923152434096`*^9}, {
+  3.735392420315075*^9, 
+  3.735392431775584*^9}},ExpressionUUID->"fb18a400-4e31-48bb-a01c-\
+254496dc5e02"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Step 3", "Chapter",
+ CellChangeTimes->{{3.7352918701757298`*^9, 3.7352918719492807`*^9}, {
+  3.735291925464628*^9, 
+  3.735291925967867*^9}},ExpressionUUID->"830a2a5f-ed0b-4bba-b7d5-\
+0a9750c6ea35"],
+
+Cell["Download RabbitMQ", "Section",
+ CellChangeTimes->{{3.735291896396454*^9, 3.7352919013475857`*^9}, {
+  3.735293181840209*^9, 
+  3.7352931840464945`*^9}},ExpressionUUID->"499a3164-069d-41d9-8d96-\
+e901c2bae5ae"],
+
+Cell[CellGroupData[{
+
+Cell["General \[Checkmark]", "Subchapter",
+ CellChangeTimes->{{3.7353924739519243`*^9, 3.735392474734223*^9}, {
+  3.7353993075975637`*^9, 
+  3.7353993121170883`*^9}},ExpressionUUID->"b535b415-9b18-4675-b441-\
+0eb6fb820031"],
+
+Cell["https://www.rabbitmq.com/download.html", "Item",
+ CellChangeTimes->{{3.735392477996378*^9, 
+  3.7353924787334113`*^9}},ExpressionUUID->"5a6cb93a-2981-4d30-9507-\
+8a5639af95e0"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Step 4", "Chapter",
+ CellChangeTimes->{{3.7352918701757298`*^9, 3.7352918719492807`*^9}, {
+  3.735291929525773*^9, 
+  3.735291929938035*^9}},ExpressionUUID->"bdad5bf3-b368-481f-9a5a-\
+859e09d49860"],
+
+Cell[CellGroupData[{
+
+Cell["Install Dependent Libraries", "Section",
+ CellChangeTimes->{{3.735291896396454*^9, 3.7352919013475857`*^9}, 
+   3.7352931875946856`*^9, {3.7353992095584445`*^9, 3.735399213323897*^9}, 
+   3.735399289366025*^9, {3.7429328724398017`*^9, 3.742932874996955*^9}, {
+   3.7429336407375593`*^9, 
+   3.742933656048924*^9}},ExpressionUUID->"fed27efc-0bce-41d0-9f8e-\
+1e1f2b8059e9"],
+
+Cell["Libraries include:: pika, numpy, scipy, matplotlib, ", "Subsection",
+ CellChangeTimes->{{3.742934108545394*^9, 
+  3.74293415492033*^9}},ExpressionUUID->"08234532-0091-4936-8b90-\
+1e49ba94c5f2"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["From terminal \[Checkmark]", "Subchapter",
+ CellChangeTimes->{{3.735399230167066*^9, 3.7353992344801497`*^9}, {
+  3.7353992935683336`*^9, 3.7353993210227823`*^9}, {3.7429342540200624`*^9, 
+  3.7429342764387484`*^9}},ExpressionUUID->"b2b9bad3-bf52-483f-ba97-\
+9c143677786c"],
+
+Cell[CellGroupData[{
+
+Cell["pip install pika", "Item",
+ CellChangeTimes->{{3.7353992381497393`*^9, 3.7353992478139935`*^9}, {
+  3.740929205998238*^9, 3.7409292066105723`*^9}, {3.7429342360740986`*^9, 
+  3.742934249781374*^9}},ExpressionUUID->"e33c1a25-1131-443f-b0e7-\
+7e6df6c35bf6"],
+
+Cell["pip install numpy", "Item",
+ CellChangeTimes->{{3.7353992381497393`*^9, 3.7353992478139935`*^9}, {
+  3.740929205998238*^9, 3.7409292066105723`*^9}, {3.742934371036912*^9, 
+  3.7429343791771708`*^9}},ExpressionUUID->"d17b695f-704e-4465-a4aa-\
+9557ecfb8dd4"],
+
+Cell["pip install scipy", "Item",
+ CellChangeTimes->{{3.7353992381497393`*^9, 3.7353992478139935`*^9}, {
+  3.740929205998238*^9, 3.7409292066105723`*^9}, {3.742934371036912*^9, 
+  3.7429343864679356`*^9}},ExpressionUUID->"53c3b01c-f7b5-48ef-bdd5-\
+9819d41143e8"],
+
+Cell["pip install matplotlib", "Item",
+ CellChangeTimes->{{3.7353992381497393`*^9, 3.7353992478139935`*^9}, {
+  3.740929205998238*^9, 3.7409292066105723`*^9}, {3.742934371036912*^9, 
+  3.7429343909050264`*^9}},ExpressionUUID->"829f042a-b26b-4f09-b901-\
+5b58990a46c0"]
+}, Open  ]]
+}, Open  ]],
+
+Cell["\<\
+If pip errors occur, reinstalling Python can solve issues. Google and \
+StackOverflow are your friend.\
+\>", "Subchapter",
+ CellChangeTimes->{{3.742934500410864*^9, 
+  3.7429345527689457`*^9}},ExpressionUUID->"4ac392d6-94b1-4326-9ce4-\
+4ab6b2b976ea"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Step 5", "Chapter",
+ CellChangeTimes->{{3.7352918701757298`*^9, 3.7352918719492807`*^9}, {
+  3.735291932950962*^9, 
+  3.7352919334153233`*^9}},ExpressionUUID->"91411e4b-c90c-4551-8727-\
+ef6ff0bdd4b6"],
+
+Cell["Learn RabbitMQ", "Section",
+ CellChangeTimes->{{3.735291896396454*^9, 3.7352919013475857`*^9}, {
+  3.73539940024343*^9, 3.735399406418168*^9}, {3.7353995093350983`*^9, 
+  3.7353995135358357`*^9}},ExpressionUUID->"23f84b6a-5598-493e-9236-\
+4db407a301a6"],
+
+Cell[CellGroupData[{
+
+Cell["Tutorials", "Subchapter",
+ CellChangeTimes->{{3.7353995155183926`*^9, 
+  3.7353995181006126`*^9}},ExpressionUUID->"165d60bb-7f87-4917-b0c9-\
+a9cc0fdf281d"],
+
+Cell["https://www.rabbitmq.com/getstarted.html", "Item",
+ CellChangeTimes->{{3.735399522277051*^9, 
+  3.735399523223569*^9}},ExpressionUUID->"f125bd0d-2ea0-4542-9caf-\
+16323aca7587"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1536, 781},
+WindowMargins->{{-8, Automatic}, {Automatic, -8}},
+FrontEndVersion->"11.1 for Microsoft Windows (64-bit) (April 18, 2017)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 269, 4, 101, "Title", "ExpressionUUID" -> \
+"33c19ba2-fe53-4cdf-9289-4981797b49cd"],
+Cell[CellGroupData[{
+Cell[874, 30, 155, 3, 72, "Chapter", "ExpressionUUID" -> \
+"494e1904-407c-4784-bdd6-7ada13522c9e"],
+Cell[1032, 35, 162, 3, 70, "Section", "ExpressionUUID" -> \
+"438b8607-8b75-4d6a-bbcd-fb708d065300"],
+Cell[CellGroupData[{
+Cell[1219, 42, 168, 3, 51, "Subchapter", "ExpressionUUID" -> \
+"94c406ec-5d09-4d78-b51d-52021025d909"],
+Cell[1390, 47, 187, 3, 29, "Item", "ExpressionUUID" -> \
+"a05834aa-6721-4bb4-bef6-304041a34b6c"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1614, 55, 151, 3, 67, "Subchapter", "ExpressionUUID" -> \
+"f06a4226-b4ef-4e7f-89d9-dc7ad7aef21f"],
+Cell[1768, 60, 238, 4, 29, "Item", "ExpressionUUID" -> \
+"82cca4be-9e20-4131-89b3-be45dcc23a01"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[2055, 70, 254, 4, 72, "Chapter", "ExpressionUUID" -> \
+"91beacfa-0e33-415b-9091-fa2d1cb316b2"],
+Cell[2312, 76, 213, 4, 70, "Section", "ExpressionUUID" -> \
+"c8200d47-1f90-45d7-9d8c-1aa1bba4e691"],
+Cell[CellGroupData[{
+Cell[2550, 84, 170, 3, 51, "Subchapter", "ExpressionUUID" -> \
+"b4c4e964-d459-4113-87fa-539e89af00a2"],
+Cell[2723, 89, 175, 3, 29, "Item", "ExpressionUUID" -> \
+"e30dd357-1ed0-49c9-b999-a1cd8cacd7a4"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[2935, 97, 163, 3, 67, "Subchapter", "ExpressionUUID" -> \
+"09f6ac77-461f-4c49-bdc9-b7378e4fc73e"],
+Cell[3101, 102, 177, 3, 29, "Item", "ExpressionUUID" -> \
+"be02be5e-613a-442d-a4d3-011f882e4cec"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3315, 110, 216, 4, 67, "Subchapter", "ExpressionUUID" -> \
+"53691d8a-bcce-4eca-8605-e25e96067cdd"],
+Cell[3534, 116, 230, 4, 29, "Item", "ExpressionUUID" -> \
+"ca89a6f6-87ae-44b3-96d0-81271d204fa0"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3801, 125, 214, 4, 67, "Subchapter", "ExpressionUUID" -> \
+"0e4f68bd-ac86-4c72-902a-2568a15057df"],
+Cell[4018, 131, 231, 4, 29, "Item", "ExpressionUUID" -> \
+"7346a918-7a19-42d4-bf48-214423b0da31"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4286, 140, 207, 4, 67, "Subchapter", "ExpressionUUID" -> \
+"e449eb63-f446-4295-a3af-d49076f74a5c"],
+Cell[4496, 146, 225, 4, 29, "Item", "ExpressionUUID" -> \
+"fb18a400-4e31-48bb-a01c-254496dc5e02"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4770, 156, 204, 4, 72, "Chapter", "ExpressionUUID" -> \
+"830a2a5f-ed0b-4bba-b7d5-0a9750c6ea35"],
+Cell[4977, 162, 215, 4, 70, "Section", "ExpressionUUID" -> \
+"499a3164-069d-41d9-8d96-e901c2bae5ae"],
+Cell[CellGroupData[{
+Cell[5217, 170, 223, 4, 51, "Subchapter", "ExpressionUUID" -> \
+"b535b415-9b18-4675-b441-0eb6fb820031"],
+Cell[5443, 176, 182, 3, 29, "Item", "ExpressionUUID" -> \
+"5a6cb93a-2981-4d30-9507-8a5639af95e0"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5674, 185, 204, 4, 72, "Chapter", "ExpressionUUID" -> \
+"bdad5bf3-b368-481f-9a5a-859e09d49860"],
+Cell[CellGroupData[{
+Cell[5903, 193, 377, 6, 70, "Section", "ExpressionUUID" -> \
+"fed27efc-0bce-41d0-9f8e-1e1f2b8059e9"],
+Cell[6283, 201, 199, 3, 49, "Subsection", "ExpressionUUID" -> \
+"08234532-0091-4936-8b90-1e49ba94c5f2"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6519, 209, 279, 4, 67, "Subchapter", "ExpressionUUID" -> \
+"b2b9bad3-bf52-483f-ba97-9c143677786c"],
+Cell[CellGroupData[{
+Cell[6823, 217, 261, 4, 29, "Item", "ExpressionUUID" -> \
+"e33c1a25-1131-443f-b0e7-7e6df6c35bf6"],
+Cell[7087, 223, 262, 4, 29, "Item", "ExpressionUUID" -> \
+"d17b695f-704e-4465-a4aa-9557ecfb8dd4"],
+Cell[7352, 229, 262, 4, 29, "Item", "ExpressionUUID" -> \
+"53c3b01c-f7b5-48ef-bdd5-9819d41143e8"],
+Cell[7617, 235, 267, 4, 29, "Item", "ExpressionUUID" -> \
+"829f042a-b26b-4f09-b901-5b58990a46c0"]
+}, Open  ]]
+}, Open  ]],
+Cell[7911, 243, 260, 6, 67, "Subchapter", "ExpressionUUID" -> \
+"4ac392d6-94b1-4326-9ce4-4ab6b2b976ea"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8208, 254, 206, 4, 72, "Chapter", "ExpressionUUID" -> \
+"91411e4b-c90c-4551-8727-ef6ff0bdd4b6"],
+Cell[8417, 260, 259, 4, 70, "Section", "ExpressionUUID" -> \
+"23f84b6a-5598-493e-9236-4db407a301a6"],
+Cell[CellGroupData[{
+Cell[8701, 268, 161, 3, 51, "Subchapter", "ExpressionUUID" -> \
+"165d60bb-7f87-4917-b0c9-a9cc0fdf281d"],
+Cell[8865, 273, 182, 3, 29, "Item", "ExpressionUUID" -> \
+"f125bd0d-2ea0-4542-9caf-16323aca7587"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
