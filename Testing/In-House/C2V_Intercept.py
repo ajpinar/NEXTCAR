@@ -7,7 +7,9 @@ File:   C2V_Intercept.py
 Description:
 
     This script listens to wireless communications sent from the cloud (mobile lab)
-    to the vehicle. It is part of the ARPA-E Project: NEXTCAR.
+    to the vehicle.
+
+    It is part of the ARPA-E Project: NEXTCAR.
 
 
 Imported Files:

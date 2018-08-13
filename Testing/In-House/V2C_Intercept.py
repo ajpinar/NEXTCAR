@@ -2,11 +2,14 @@
 
 Author: Sam Celani
 
-File:   C2V_Intercept.py
+File:   V2C_Intercept.py
 
 Description:
 
-
+    This script listens to wireless communications sent from the vehicle to the
+    cloud (mobile lab). It then looks up the approximate road grade and speed limit
+    from imported files, and sends them back to the vehicle using send.py.
+    It is part of the ARPA-E Project: NEXTCAR.
 
 
 Imported Files:
@@ -15,9 +18,22 @@ Imported Files:
 
         Helps to determine where the script should be listening.
 
+
     send.py
 
         One-off script that sends data back upon being called.
+
+
+    grad_grid_MTUDC_050318_CD_minaux_Beta_043.mat
+
+        Contains all of the data required to look up the latitude and longitude
+        and return a road grade.
+
+
+    mtudc_speed_limit_grid_mph.mat
+
+        Contains all of the data required to look up the latitude and longitude
+        and return a speed limit.
     
 """
 
@@ -94,7 +110,7 @@ print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\
 #
 #   FUNCTION DEFINITION 1
 #       Takes GPS (Lat, Long) and looks up the speed limit
-#           at that position
+#       at that position
 
 def gpsSLLookUp( lat, long ):
     global gpsSpeedData     ##  Collection of valid Speed Limit coordinates
@@ -122,7 +138,7 @@ def gpsSLLookUp( lat, long ):
 #
 #   FUNCTION DEFINITION 2
 #       Takes GPS (Lat, Long) and looks up the road grade
-#           at that position
+#       at that position
 
 def gpsGradeLookUp( lat, long ):
     global gpsGradeData     ##  Collection of valid Road Grade coordinates

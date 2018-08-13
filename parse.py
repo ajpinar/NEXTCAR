@@ -1,23 +1,65 @@
-#from __future__ import print_function
-import struct
+"""
 
+Author: Sam Celani
+
+File:   parse.py
+
+Description:
+
+    This script listens to wireless communications sent from the vehicle to the
+    cloud (mobile lab). It then looks up the approximate road grade and speed limit
+    from imported files, and sends them back to the vehicle using send.py.
+    
+    It is part of the ARPA-E Project: NEXTCAR.
+
+NOTE:
+
+    BECAUSE THIS FILE HAS A .pyc COMPANION FILE, ANY FUNCTIONAL CHANGE
+    TO THIS FILE WILL REQUIRE THE ERASURE OF THE COMPANION FILE
+    
+"""
 
 ####
-####    THIS IS DESIGNED FOR "Data_Interface_for_Communication_02_02_2018.xlsx"
+####    THIS IS DESIGNED FOR "Data_Interface_for_Communication_06_27_2018.xlsx"
 ####
 
-####
-####    MUST BE RETROFITTED TO "Data_Interface_for_Communication_06_27_2018.xlsx"
-####
+###########################################################
 
-MEpad = [ 0 for c in range(19) ]
-CEpad = [0, 0.0]
-processed = None
+#
+#   IMPORTS
+#       All imports are nested in a try-except block
+#       to avoid fatal errors, or at least to simply
+#       put them off for a little bit.
+#
 
-#CEdataFormat= '!Hdddiiddddddddddi'
-CEdataFormat = '!Hdddiiddddddddddidd'       # If data isn't recognized, change "H" to "i"
-MEdataFormat = '!id'
-CONCdataFormat = '!idHdddiiidddddddddddd'
+try:
+    
+    import struct       ##  Used for data unpacking     | 
+
+except Exception as ex:
+    print(ex)
+
+###########################################################
+
+#
+#   Global Variables
+#   
+
+MEpad = [ 0 for c in range(19) ]    ##  Gets appended to an incoming data packet from the Mechanical Department
+CEpad = [0, 0.0]                    ##  Gets prepended to an incoming data packet from the Civil Department
+processed = None                    ##  Initialized as None, only changes if a recognized packed is recieved
+
+CEdataFormat = '!Hdddiiddddddddddidd'       ##  Supposed format of the Civil data packet, as of 8/12/18
+MEdataFormat = '!id'                        ##  Supposed format of the Mechanical data packet, as of 8/12/18
+CONCdataFormat = '!idHdddiiidddddddddddd'   ##  Supposed format of the concatenated data packet, derived from CE and ME data formats
+
+###########################################################
+
+#
+#   FUNCTION DEFINITION 1
+#       Checks to see if the data is of a known format,
+#       processes it, and returns it
+#
 
 def process(body):
     # check size to decipher between CE or ME data
@@ -35,25 +77,24 @@ def process(body):
     global CONCdataFormat
 
 
-    if type(body) is bytes and not type(body) is str:
-        if len(body) is ( 8 * CEdataFormat.count('d') + 4 * CEdataFormat.count('i') + 2 * CEdataFormat.count('H') ):
+    if type(body) is bytes and not type(body) is str:       ##  Strings are also of type 'bytes', but we don't want strings
+        if len(body) is ( 8 * CEdataFormat.count('d') + 4 * CEdataFormat.count('i') + 2 * CEdataFormat.count('H') ):        ##  Determine if the length matches the Civil data format
             # CE data packet
             # 134 bytes is:
             # 15 doubles (8 bytes)
             # 3 integers (4 bytes)
             # 1 short ( 2 bytes)
-
-
-            #data = list(struct.unpack(CEdataFormat, body)) #### Updated to work with 06_27_2018
-            #data.insert(-10, data.pop())                   ####
             
-            data = list(struct.unpack(CEdataFormat, body))  ####    Unpacks with new CEdataFormat
-            data.insert(-10,data.pop())                     ####    Removes last piece of data and puts it in front of arrays
-            data.insert(-11,data.pop())                     ####    Removes new last piece and puts it in front of previous data
-            data.insert(-12,data.pop())                     ####    Removes new last piece and puts it in front of previous data
+            data = list(struct.unpack(CEdataFormat, body))  ##  Unpacks with CEdataFormat
+            data.insert(-10,data.pop())                     ##  Removes last piece of data and puts it in front of arrays
+            data.insert(-11,data.pop())                     ##  Removes new last piece and puts it in front of previous data
+            data.insert(-12,data.pop())                     ##  Removes new last piece and puts it in front of previous data
+
+            ##  This is done to move random numbers after the arrays, for the ease of processing the data in Simulink
+
             
-            data = CEpad + data
-            processed = struct.pack(CONCdataFormat,
+            data = CEpad + data                             ##  Concatenates data packet with padding
+            processed = struct.pack(CONCdataFormat,         ##  Converts the concatenated data list into bytes
                                     data[0],
                                     data[1],
                                     data[2],
@@ -76,26 +117,26 @@ def process(body):
                                     data[19],
                                     data[20])
 
-            print 'CE data packet.'
-            print type(body)
-            print 'Old packet size:',len(body)
-            print 'New packet size:',len(processed)
-            print 'Old packet:',str(body)
-            print 'New packet:',str(processed)
+            print('CE data packet.')
+            print(type(body))
+            print('Old packet size:',len(body))
+            print('New packet size:',len(processed))
+            print('Old packet:',str(body))
+            print('New packet:',str(processed))
 
                 
-        elif len(body) is ( 8 * MEdataFormat.count('d') + 4 * MEdataFormat.count('i') ):
+        elif len(body) is ( 8 * MEdataFormat.count('d') + 4 * MEdataFormat.count('i') ):        ##  Determine if the length matches the Mechanical data format
             # ME data packet
-            # unknown as of 6/15/18, 11:30AM
             # speed limit and grade, as of 6/15/18, 1PM
             # 12 bytes is
             # 1 integer (4 bytes)
             # 1 double (8 bytes)
 
 
-            data = list(struct.unpack(MEdataFormat, body))
-            data = data + MEpad
-            processed = struct.pack(CONCdataFormat,
+            data = list(struct.unpack(MEdataFormat, body))      ##  Unpacks with MEdataFormat
+            
+            data = data + MEpad                                 ##  Concatenates data packet with padding
+            processed = struct.pack(CONCdataFormat,             ##  Converts the concatenated data list into bytes
                                     data[0],
                                     data[1],
                                     data[2],
@@ -118,39 +159,39 @@ def process(body):
                                     data[19],
                                     data[20])
 
-            print 'ME data packet.'
-            print type(body)
-            print 'Old packet size:',len(body)
-            print 'New packet size:',len(processed)
-            print 'Old packet:',str(body)
-            print 'New packet:',str(processed)
+            print('ME data packet.')
+            print(type(body))
+            print('Old packet size:',len(body))
+            print('New packet size:',len(processed))
+            print('Old packet:',str(body))
+            print('New packet:',str(processed))
 
             
-        else:
-            print 'Data packet format unknown.'
-            print type(body)
-            print 'Packet:',str(body)
-            print 'Packet size:',len(body)
+        else:       ##  This happens if the message matches neither data packet
+            print('Data packet format unknown.')
+            print(type(body))
+            print('Packet:',str(body))
+            print('Packet size:',len(body))
 
-    elif type(body) is str:
+    elif type(body) is str:     ##  This will happen if the message is a string
         
-        data = body.split(',')
+        data = body.split(',')      ##  Splits data into a list around each comma, which is used as a delimiter in the packet
         
-        if not len(body) is 2:              # This needs to be more accurate
+        if not len(body) is 2:              ##  This needs to be more accurate
             # CE data packet as string
 
-            data.insert(6, data.pop())
-            data.insert(6, data.pop())    ####    Updated to work with 06_27_2018
-            data.insert(6, data.pop())    ####    Updated to work with 06_27_2018
-            pdata = CEpad + data
+            data.insert(6, data.pop())      ##  Reorders data to work with Simulink
+            data.insert(6, data.pop())      ##  Reorders data to work with Simulink
+            data.insert(6, data.pop())      ##  Reorders data to work with Simulink
+            pdata = CEpad + data            ##  Concatenate data packet with padding
 
-            for c in range(len(pdata)):
-                if c in [0,2,6,7,8]:
-                    pdata[c] = int(pdata[c])
-                else:
-                    pdata[c] = float(pdata[c])
+            for c in range(len(pdata)):                 ##  These values are a list of strings
+                if c in [0,2,6,7,8]:                    ##  Values in these positions need to be integers
+                    pdata[c] = int(pdata[c])            ##  Converts to integers
+                else:                                   ##  Otherwise, they need to be floats
+                    pdata[c] = float(pdata[c])          ##  Convert to floats
 
-            processed = struct.pack(CONCdataFormat,
+            processed = struct.pack(CONCdataFormat,     ##  Converts the concatenated data list into bytes
                         pdata[0],
                         pdata[1],
                         pdata[2],
@@ -173,27 +214,25 @@ def process(body):
                         pdata[19],
                         pdata[20])
 
-            print 'CE data packet.'
-            print type(body)
-            #print 'Old packet size:',len(body)
-            print 'New packet size:',len(processed)
-            print 'Old packet:',str(body)
-            #print 'New packet:',processed.encode('ascii')
+            print('CE data packet.')
+            print(type(body))
+            print('New packet size:',len(processed))
+            print('Old packet:',str(body))
             
-        elif len(body) is 2:
+        elif len(body) is 2:                    ##  This is the ME data packet
             # ME data packet as string
             # unknown as of 6/15/18, 11:30AM
             # speed limit and grade, as of 6/15/18, 1PM
 
-            pdata = data + MEpad
+            pdata = data + MEpad            ##  Concatenate data packet with padding
 
-            for c in range(len(pdata)):
-                if c in [0,2,6,7,8]:
-                    pdata[c] = int(pdata[c])
-                else:
-                    pdata[c] = float(pdata[c])
+            for c in range(len(pdata)):                 ##  These values are a list of strings
+                if c in [0,2,6,7,8]:                    ##  Values in these positions need to be integers
+                    pdata[c] = int(pdata[c])            ##  Converts to integers
+                else:                                   ##  Otherwise, they need to be floats
+                    pdata[c] = float(pdata[c])          ##  Convert to floats
 
-            processed = struct.pack(CONCdataFormat,
+            processed = struct.pack(CONCdataFormat,     ##  Converts the concatenated data list into bytes
                         pdata[0],
                         pdata[1],
                         pdata[2],
@@ -216,31 +255,36 @@ def process(body):
                         pdata[19],
                         pdata[20])
 
-            print 'ME data packet.'
-            print type(body)
-            print 'Old packet size:',len(body)
-            print 'New packet size:',len(processed)
-            print 'Old packet:',str(body)
-            print 'New packet:',processed
+            print('ME data packet.')
+            print(type(body))
+            print('Old packet size:',len(body))
+            print('New packet size:',len(processed))
+            print('Old packet:',str(body))
+            print('New packet:',processed)
 
-        else:
-            print 'Data packet format unknown.'
-            print 'This shouldn''t even be possible.'
-            print body
-            print len(body),'characters'
-    else:
-        print 'Data packet format unknown.'
-        print 'Packet:',body
-        print type(body)
-        print len(body)
+        else:       ##  This literally shouldn't be possible, idk why I added this, -Sam
+            print('Data packet format unknown.')
+            print('This shouldn''t even be possible.')
+            print(body)
+            print(len(body),'characters')
+    else:           ##  This happens if the data packet is neither a string nor a byte stream
+        print('Data packet format unknown.')
+        print('Packet:',body)
+        print(type(body))
+        print(len(body))
 
-    if not processed is None:
-        return processed
+    ##  The processed variable is only changed if a data format is known
+    if not processed is None:       ##  If processed isn't still None, i.e. the data format is known and processed has a value
+        return processed            ##  return it
 
 
+###########################################################
 
-# Test information
+#
+#   TESTING
+#
 
+##  Splits a sample test data sample and packs it into bytes as a test packet
 datum = '0,0.1,1.5,5,15,5,35,35,35,35,35,25,25,25,25,25,1,0.0,0.0'
 
 sampleData = datum.split(',')
@@ -257,6 +301,7 @@ SIM_INDEX = int(sampleData[16])
 DESIRED_ACCEL = float(sampleData[17])
 DESIRED_VEL = float(sampleData[18])
 
+##  Byte-based packed to look like the Civil packet
 CEbyte = struct.pack(CEdataFormat,
                      VEHICLE_ID,
                      SIMULATION_TIME_STEP,
@@ -278,32 +323,41 @@ CEbyte = struct.pack(CEdataFormat,
                      DESIRED_ACCEL,
                      DESIRED_VEL)
 
+##  Byte-based packed to look like the Mechanical packet
 MEbyte = struct.pack(MEdataFormat,
                      25,
                      2.5)
 
-CEstring = '0,1,1.3,5,13,5,35,35,35,35,35,25,25,25,25,25,13,0,0'        # datum
+##  String-based packed to look like the Civil packet
+CEstring = '0,1,1.3,5,13,5,35,35,35,35,35,25,25,25,25,25,13,0,0.0'        # datum
 
+##  String-based packed to look like the Mechanical packet
 MEstring = '25,2.5'
 
+##  Byte-based packed to look like a packet that doesn't work
 NAbyte = struct.pack('!iiii',
                      1,
                      2,
                      3,
                      4)
 
+##  String-based packed to look like a packet that doesn't work
 NAstring = '1,2,3,4'
 
 
 
 # Argument is one of the following
 
-# CEbyte    -> a representation of data from CE department
-# MEbyte    -> a representation of data from ME department
-# CEstring  -> a string representation of CE data, unused
-# MEstring  -> a string representation of ME data, unused
-# NAbyte    -> a non-applicable assortment of data
-# NAstring  -> a non-applicable string assortment of data, unused
+"""
+
+CEbyte    -> a representation of data from CE department
+MEbyte    -> a representation of data from ME department
+CEstring  -> a string representation of CE data, unused
+MEstring  -> a string representation of ME data, unused
+NAbyte    -> a non-applicable assortment of data
+NAstring  -> a non-applicable string assortment of data, unused
+
+"""
 
 #process(CEstring)
 
