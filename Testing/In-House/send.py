@@ -2,34 +2,49 @@ import pika
 import struct
 
 
-def fullSend( sl, rg ):
+def fullSend( sl, rg, serverIP = None, creds = None, xch = None, rtk = None):
+
+    ##  This is probably redundant, but I fear it might be necessary    -Sam
+    if not serverIP is None:
+        ##  This doesn't seem to be the most accurate way to find a URL,
+        ##  but at the same time, I can't imagine having too many different
+        ##  URL's too have to choose from   -Sam
+        if serverIP.contains('@'):
+            params = pika.URLParameters(serverIP)       ##  Create parameters from URL
+        else:
+            ##  Create parameters from IP and credentials
+            params = pika.ConnectionParameters(host = serverIP,
+                                               port = 5672,
+                                               virtual_host = '/',
+                                               credentials = creds)
+                                               
     
-    url = 'amqp://cnplsytz:ST-2S7zCbeV9dknueCgJIzrCZpk0dUGW@termite.rmq.cloudamqp.com/cnplsytz'
-    params = pika.URLParameters(url)
-    connection = pika.BlockingConnection(params)
+    connection = pika.BlockingConnection(params)        ##  Create connection from params
+    channel = connection.channel()                      ##  Create channel from connection
 
-    EXCHANGE_NAME = 'cacc_test_exchange'    # MIGHT BE 'aps_xchg'
-    UNIQUE_ROUTING_KEY = 'controller_1'     # MIGHT BE 'controller_1', 'controller_2', 'vehicle_1'
-
-    channel = connection.channel()
-
-    channel.exchange_declare(exchange = EXCHANGE_NAME,
-                             exchange_type = 'topic', #IN CASE OF AUTO_DELETE ERROR
+    ##  Declare exchange using xch argument
+    channel.exchange_declare(exchange = xch,
+                             exchange_type = 'topic',
                              auto_delete = True)
     
-    q = channel.queue_declare(exclusive = True)
-    qName = q.method.queue
+    
+    q = channel.queue_declare(exclusive = True)     ##  Declare random queue
+    qName = q.method.queue                          ##  Get random queue's name
 
-    channel.queue_bind(exchange = EXCHANGE_NAME,
+    ##  Bind queue to exhange xch using routing key rtk, from arguments
+    channel.queue_bind(exchange = xch,
                        queue = qName,
-                       routing_key = UNIQUE_ROUTING_KEY)
+                       routing_key = rtk)
 
-    try:
-        channel.basic_publish(exchange = EXCHANGE_NAME,
-                              routing_key = UNIQUE_ROUTING_KEY,
-                              body = struct.pack('!id',sl,rg))
-        print(' [x] %s Sent' % struct.pack('!id',sl,rg))
+    ##  Wrapped publish in a try-except block as an attempt
+    ##  at a graceful exit from a Keyboard Interrupt.
+    try:        ##  It will probably never actually happen, but it's here.
+        channel.basic_publish(exchange = xch,                   ##  Over the exchange xch,
+                              routing_key = rtk,                ##  using routing key rtk,
+                              body = struct.pack('!id',sl,rg))  ##  publish, a message that
+                                                                ##  contains speed limit and road grade
+        print(' [x] %s Sent' % struct.pack('!id',sl,rg))        ##  Print the message
     except KeyboardInterrupt:
-        exit()
+        exit()                                                  ##  Exeunt
 
 

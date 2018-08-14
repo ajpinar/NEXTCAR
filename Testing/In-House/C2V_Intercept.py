@@ -25,6 +25,9 @@ Imported Files:
 
 #
 #   IMPORTS
+#       All imports are nested in a try-except block
+#       to avoid fatal errors, or at least to simply
+#       put them off for a little bit.
 #
 
 try:

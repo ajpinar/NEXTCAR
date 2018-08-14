@@ -9,6 +9,7 @@ Description:
     This script listens to wireless communications sent from the vehicle to the
     cloud (mobile lab). It then looks up the approximate road grade and speed limit
     from imported files, and sends them back to the vehicle using send.py.
+    
     It is part of the ARPA-E Project: NEXTCAR.
 
 
@@ -42,6 +43,9 @@ Imported Files:
 
 #
 #   IMPORTS
+#       All imports are nested in a try-except block
+#       to avoid fatal errors, or at least to simply
+#       put them off for a little bit.
 #
 
 try:
@@ -56,7 +60,6 @@ try:
     import pika                         ##  Used in data transmission   | Function::init
     import scipy.io as sp               ##  Used for SL and RG lookup   | Part::body
     import send                         ##  Used to send data           | Function::callback
-##    import struct                       ##  Used for data unpacking     | Part::TESTING
     import sys                          ##  Used for testing            | Part::TESTING
     
 except Exception as ex:
@@ -65,26 +68,81 @@ except Exception as ex:
 ###########################################################
 
 #
-#   CONFIG
+#   INITIALIZE VARIABLES
 #
 
-## Keeping this for defaulting, in case configInit fails
-    
-SERVERIP =      ['166.152.103.250', 'Mobile Lab']   # Mobile Lab IP
-SERVERIP =      ['141.219.181.216', 'Kuilin']       # Kuilin's IP
+##  Keeping this for defaulting, in case configInit fails
+SERVERIP =      ['141.219.181.216', 'Kuilin']
+SERVERIP =      ['166.152.103.250', 'Mobile Lab']
 credA =         'aps-lab'
 credB =         'aps-lab'
 CREDENTIALS =   pika.PlainCredentials(credA, credB)
-LOGNAME =       'cacc_test_exchangeA'               # I'm convinced this is going to be a major issue
-ROUTING_KEY =   'cloud_cacc'                        # Same
+LOGNAME =       'cacc_test_exchange'
+ROUTING_KEY =   'cloud_cacc'
+
+params = None
+
+
+##  Initialize road grade data
+pltLat = []
+pltLong = []
+rgL = []
+
+##  Open Speed Limit data
+bigData = sp.loadmat('mtudc_speed_limit_grid_mph')
+
+##  Pull data from inside the Speed Limit data set
+gpsLat = bigData['GPS_Lat']
+gpsLong = bigData['GPS_Long']
+gpsMPH = bigData['speed_limit_mph']
+
+##  Open Road Grade data
+biggerData = sp.loadmat('grad_grid_MTUDC_050318_CD_minaux_Beta_043')
+
+##  Populate Road Grade data for Lookup and Plotting
+for b in range(len(biggerData['grade_grid'])):
+    for c in range(len(biggerData['grade_grid'][b])):
+
+##  In the matrix, entries are either nan or a valid value
+        
+        if biggerData['grade_grid'][b][c] > 0 or biggerData['grade_grid'][b][c] < 0:
+        #   Check to see if the value is valid
+        
+            pltLat.append(biggerData['latitude'][0][b])
+            #   Keep track of valid latitudes
+            
+            pltLong.append(biggerData['longitude'][0][c])
+            #   Keep track of valid longitudes
+            
+            rgL.append(biggerData['grade_grid'][b][c])
+            #   Keep track of corresponding road grades
+
+
+plt.scatter(pltLong, pltLat, marker = '.')      ##  Plot valid lat long pairs
+plt.show()                                      ##  Show plot
+
+##  I don't understand this line, but it seems important  -Sam
+plt.pause(0.0001)
+
+gpsGradeData = np.array([pltLat, pltLong])      ##  Format Road Grade data for lookup
+gpsSpeedData = np.array([gpsLat,gpsLong])       ##  Format Speed Limit data for lookup
+
+
+###########################################################
+
+#
+#   USE OF CONFIGINIT
+#
 
 try:
     # kuilin, beta, sam, mobile_lab, tony_url
-    datum = configInit.init('tony_url')
+    datum = configInit.init('mobile_lab')
     SERVERIP = datum[0]
     if len(datum) is 3:
         ROUTING_KEY = datum[1]
         LOGNAME = datum[2]
+        params = pika.URLParameters(SERVERIP)
+        print( SERVERIP, LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
     elif len(datum) is 4:
         credA = datum[1][0]
         credB = datum[1][1]
@@ -94,16 +152,31 @@ try:
             CREDENTIALS = None
         ROUTING_KEY = datum[2]
         LOGNAME = datum[3]
+        params = pika.ConnectionParameters(host = SERVERIP,
+                                           port = 5672,
+                                           virtual_host = '/',
+                                           credentials = CREDENTIALS)
+                                           
+        print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
     else:
         # shouldn't even be possible
         print('What?')
 except:
     print('Proceeding with default connection information:\n')
+    params = pika.ConnectionParameters(host = SERVERIP,
+                                       port = 5672,
+                                       virtual_host = '/',
+                                       credentials = CREDENTIALS)
+    
+    print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+
+
+
 
 ##  I don't understand this line, but it seems important  -Sam
 plt.ion()
 
-print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+
 
 ###########################################################
 
@@ -113,8 +186,8 @@ print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\
 #       at that position
 
 def gpsSLLookUp( lat, long ):
-    global gpsSpeedData     ##  Collection of valid Speed Limit coordinates
-    global gpsMPH              ##  Valid Speed Limits
+    global gpsSpeedData         ##  Collection of valid Speed Limit coordinates
+    global gpsMPH               ##  Valid Speed Limits
 
 ##  Finds the difference between all valid points and the live coordinate
     difSL = [(abs(long - gpsSpeedData[0][c]), abs(lat - gpsSpeedData[1][c])) for c in range(len(gpsSpeedData[0]))]
@@ -177,7 +250,11 @@ def gpsGradeLookUp( lat, long ):
 #           
 
 def callback(ch, method, properties, body):
-    global logfile      ##  This is the name of the file that the message gets dumped to
+    global logfile          ##  This is the name of the file that the message gets dumped to
+    global SERVERIP         ##  This is the server IP, used for send.fullsend()
+    global CREDENTIALS      ##  This is the credentials, used for send.fullsend()
+    global LOGNAME          ##  This is the exchange, used for send.fullsend()
+    global ROUTING_KEY      ##  This is the routing key, used for send.fullsend()
 
     
     if len(sys.argv) is 2 and sys.argv[1].lower == '-v':    ##  V E R B O S E
@@ -186,11 +263,6 @@ def callback(ch, method, properties, body):
         
     print(' [x] %s\n' % body)               ##  Prints the actual message
     logfile.write(str(data)[1:-1] + '\n')   ##  Writes to logfile
-
-    """
-    fmt = "<HsddHHcdiddddd?ddddd?dddddddddH"
-    data = struct.unpack(fmt,body)
-    """
     
     data = str(body).split(', ')        ##  Splits data into usable chunks
     
@@ -203,7 +275,12 @@ def callback(ch, method, properties, body):
 ##  I don't understand this line, but it seems important  -Sam
     plt.pause(0.0001)                                           
 
-    send.fullSend(sl, rg)       ##  Send data out
+    send.fullSend(sl,
+                  rg,
+                  serverIP = SERVERIP,
+                  creds = CREDENTIALS,
+                  xch = LOGNAME,
+                  rtk = ROUTING_KEY)       ##  Send data out
 
 
         
@@ -212,71 +289,13 @@ def callback(ch, method, properties, body):
 ###########################################################
 
 #
-#   TESTING
+#   CONNECTION
 #
 
-##  Initialize road grade data
-pltLat = []
-pltLong = []
-rgL = []
-
-##  Open Speed Limit data
-bigData = sp.loadmat('mtudc_speed_limit_grid_mph')
-
-##  Pull data from inside the Speed Limit data set
-gpsLat = bigData['GPS_Lat']
-gpsLong = bigData['GPS_Long']
-gpsMPH = bigData['speed_limit_mph']
-
-##  Open Road Grade data
-biggerData = sp.loadmat('grad_grid_MTUDC_050318_CD_minaux_Beta_043')
-
-##  Populate Road Grade data for Lookup and Plotting
-for b in range(len(biggerData['grade_grid'])):
-    for c in range(len(biggerData['grade_grid'][b])):
-
-##  In the matrix, entries are either nan or a valid value
-        
-        if biggerData['grade_grid'][b][c] > 0 or biggerData['grade_grid'][b][c] < 0:
-        #   Check to see if the value is valid
-        
-            pltLat.append(biggerData['latitude'][0][b])
-            #   Keep track of valid latitudes
-            
-            pltLong.append(biggerData['longitude'][0][c])
-            #   Keep track of valid longitudes
-            
-            rgL.append(biggerData['grade_grid'][b][c])
-            #   Keep track of corresponding road grades
-
-
-plt.scatter(pltLong, pltLat, marker = '.')      ##  Plot valid lat long pairs
-plt.show()                                      ##  Show plot
-
-##  I don't understand this line, but it seems important  -Sam
-plt.pause(0.0001)
-
-gpsGradeData = np.array([pltLat, pltLong])      ##  Format Road Grade data for lookup
-gpsSpeedData = np.array([gpsLat,gpsLong])       ##  Format Speed Limit data for lookup
-
-
-###########################################################
-
-
-# This needs to go
-url = 'amqp://cnplsytz:ST-2S7zCbeV9dknueCgJIzrCZpk0dUGW@termite.rmq.cloudamqp.com/cnplsytz'
-params = pika.URLParameters(url)
+##  Declare connection based off of params variable from Part::USE OF CONFIGINIT
 connection = pika.BlockingConnection(params)
 
-
-##  Define a connection based off of configInit params
-
-##connection = pika.BlockingConnection(pika.ConnectionParameters(host = SERVERIP[0],
-##                                                               port = 5672,
-##                                                               virtual_host = '/',
-##                                                               credentials = CREDENTIALS))
-
-##  Make a channel from connection
+##  Make channel from connection
 channel = connection.channel()
 
 ##  Declare exchange
@@ -290,10 +309,13 @@ q2 = channel.queue_declare(exclusive = True)
 ##  Bind queue to exchange
 channel.queue_bind(exchange = 'cacc_test_exchange',
                    queue = q2.method.queue,
-                   #routing_key = ROUTING_KEY)
-                   routing_key = 'cloud_cacc')
+                   routing_key = ROUTING_KEY)
 
+###########################################################
 
+#
+#   TESTING
+#
 
 ##  Create fake logfile for debugging purposes
 if len(sys.argv) is 2 and sys.argv[1].lower() == 'test':
@@ -317,6 +339,8 @@ elif len(sys.argv) is 2 and sys.argv[1].lower() == 'usage':
 
 print(' [*] Waiting for packets...')
 
+###########################################################
+
 ##  Define consumption
 channel.basic_consume(callback,
                       queue = q2.method.queue,
@@ -324,13 +348,13 @@ channel.basic_consume(callback,
 
 
 ##  Acutal consumption
-    try:
-        logfile = open('V2C_logfile.txt','a')       ##  Open the logfile in append mode
+try:
+    logfile = open('V2C_logfile.txt','a')       ##  Open the logfile in append mode
 
-                                    ##  Consumption is nested in a try-
-        channel.start_consuming()   ##  except block, in the hopes that it
-    except KeyboardInterrupt:       ##  handles a KeyboardInterrupt gracefully. 
-                                    ##  Spoiler Alert:: It doesn't work very well
+                                ##  Consumption is nested in a try-
+    channel.start_consuming()   ##  except block, in the hopes that it
+except KeyboardInterrupt:       ##  handles a KeyboardInterrupt gracefully. 
+                                ##  Spoiler Alert:: It doesn't work very well
 
-        logfile.close()                             ##  Close file before exiting the script
-        exit()                                      ##  Exit script
+    logfile.close()                             ##  Close file before exiting the script
+    exit()                                      ##  Exit script

@@ -14,7 +14,7 @@ exchange,cacc_test_exchange
 
 mobile lab,166.152.103.250
 credentials,aps-lab|aps-lab
-routing key_M,cloud_cacc
+routing key_M,vehicle_2
 exchange,cacc_test_exchange
 
 tony url,amqp://cnplsytz:ST-2S7zCbeV9dknueCgJIzrCZpk0dUGW@termite.rmq.cloudamqp.com/cnplsytz
