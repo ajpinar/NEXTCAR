@@ -1,106 +1,165 @@
-#################################################
-#   Author: Sam Celani                          #
-#   Date:   5/18/18                             #
-#                                               #
-#   File:   C2V_Producer.py                     #
-#                                               #
-#   Description:                                #
-#                                               #
-#                                               #
-#################################################
+"""
 
+Author: Sam Celani
+
+File:   C2V_Producer.py
+
+Description:
+
+    This file sends a predefined data packet every five seconds.
+    The receiver of the message is determined by the argument
+    passed to configInit.py
+    
+    It is part of the ARPA-E Project: NEXTCAR.
+
+
+Imported Files:
+
+    configInit.py
+
+        Helps to determine where the script should be listening.
+
+    
+"""
+
+###########################################################
 
 #
-#
-#   USAGE
-#       py C2V_Producer.py local
-#           - sends messages from localhost
-#       py C2V_Producer.py
-#           - sends messages from Kuilin's server
-#
+#   IMPORTS
+#       All imports are nested in a try-except block
+#       to avoid fatal errors, or at least to simply
+#       put them off for a little bit.
 #
 
-import pika
-import time
-import datetime
-import configInit
-import sys
-import struct
+try:
 
-if len(sys.argv) is 2:
-    datum = configInit.init(True, False)
-else:
-    datum = configInit.init(True, True)
+    import configInit       ##  Used to decide server
+    import pika             ##  Used in data transmission
+    import struct           ##  Used in data packing
+    import time             ##  Used for sleep function
+    
+except Exception as ex:
+    print(ex)
 
 
+###########################################################
 
+#
+#   INITIALIZE VARIABLES
+#
 
-dataFormat = '!Hdddiiddddddddddi'
-message = struct.pack(dataFormat,
-                      123,
-                      0.1,
-                      1.6,
-                      5,
-                      16,
-                      5,
-                      35,
-                      35,
-                      35,
-                      35,
-                      35,
-                      25,
-                      25,
-                      25,
-                      25,
-                      25,
-                      1)
+##  Keeping this for defaulting, in case configInit fails
+SERVERIP =      ['141.219.181.216', 'Kuilin']
+SERVERIP =      ['166.152.103.250', 'Mobile Lab']
+credA =         'aps-lab'
+credB =         'aps-lab'
+CREDENTIALS =   pika.PlainCredentials(credA, credB)
+LOGNAME =       'cacc_test_exchange'
+ROUTING_KEY =   'cloud_cacc'
 
-data2 = '!id'
-mess = struct.pack(data2,20,10.5)
-#print(sys.argv[1])
-print(datum)
-print(datum[3][0])
+params = None
 
-SERVERIP = datum[0][0]
-if len(sys.argv) is 1:
-    CREDENTIALS = pika.PlainCredentials(datum[1][0], datum[1][1])
-    print(CREDENTIALS)
+###########################################################
 
-UNIQUE_ROUTING_KEY = datum[2][0]
-EXCHANGE_NAME = datum[3][0]
+#
+#   USE OF CONFIGINIT
+#
 
+try:
+    # kuilin, beta, sam, mobile_lab, tony_url
+    datum = configInit.init('mobile_lab')
+    SERVERIP = datum[0]
+    if len(datum) is 3:
+        ROUTING_KEY = datum[1]
+        LOGNAME = datum[2]
+        params = pika.URLParameters(SERVERIP)
+        print( SERVERIP, LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+    elif len(datum) is 4:
+        credA = datum[1][0]
+        credB = datum[1][1]
+        if not datum[1][0] is None:
+            CREDENTIALS = pika.PlainCredentials(credA,credB)
+        else:
+            CREDENTIALS = None
+        ROUTING_KEY = datum[2]
+        LOGNAME = datum[3]
+        params = pika.ConnectionParameters(host = SERVERIP,
+                                           port = 5672,
+                                           virtual_host = '/',
+                                           credentials = CREDENTIALS)
+                                           
+        print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+    else:
+        # shouldn't even be possible
+        print('What?')
+except:
+    print('Proceeding with default connection information:\n')
+    params = pika.ConnectionParameters(host = SERVERIP,
+                                       port = 5672,
+                                       virtual_host = '/',
+                                       credentials = CREDENTIALS)
+    
+    print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+
+###########################################################
+
+#
+#   CONNECTION
+#
+
+##  Declare connection based off of params variables
+connection = pika.BlockingConnection(params)
+
+##  Make channel from connection
+channel = connection.channel()
+
+##  Declare exchange
+channel.exchange_declare(exchange = LOGNAME,
+                         exchange_type = 'topic')
+
+##  Declare queue
+q = channel.queue_declare(exclusive = True)
+
+##  Bind queue to exchange over routing key
+channel.queue_bind(exchange = LOGNAME,
+                   queue = q.method.queue,
+                   routing_key = ROUTING_KEY)
 
 while True:
-    if len(sys.argv) is 2:
-        #connection = pika.BlockingConnection(pika.ConnectionParameters(host = '127.0.0.1'))
-        # This is for CloudAMQP
-        url = 'amqp://cnplsytz:ST-2S7zCbeV9dknueCgJIzrCZpk0dUGW@termite.rmq.cloudamqp.com/cnplsytz'
-        params = pika.URLParameters(url)
-        connection = pika.BlockingConnection(params)
-    else:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host = SERVERIP,
-                                                                       port = 5672,
-                                                                       virtual_host = '/',
-                                                                       credentials = CREDENTIALS))
+
+    ##  Define a message to match the ME data packet
+    message = struct.pack('!id',
+                          55,
+                          0.2)
+
+    ##  Define a message to match the CE data packet
+    message = struct.pack('!Hdddiiddddddddddidd',
+                          123,
+                          0.1,
+                          1.6,
+                          5,
+                          16,
+                          5,
+                          35,
+                          35,
+                          35,
+                          35,
+                          35,
+                          25,
+                          25,
+                          25,
+                          25,
+                          25,
+                          1,
+                          2.5,
+                          35)
     
-    channel = connection.channel()
-
-    channel.exchange_declare(exchange = EXCHANGE_NAME,
-                             exchange_type = 'topic')
-
-    q = channel.queue_declare(exclusive = True)
-    qName = q.method.queue
-
-    channel.queue_bind(exchange = EXCHANGE_NAME,
-                       queue = qName,
-                       routing_key = UNIQUE_ROUTING_KEY)
-
-
     try:
-        channel.basic_publish(exchange = EXCHANGE_NAME,
-                              routing_key = UNIQUE_ROUTING_KEY,
-                              body = mess)
-        print(' [x] %s Sent' % mess)
-        time.sleep(5)
+        ##  Publish a message to the exchange LOGNAME using the routing key ROUTING_KEY
+        channel.basic_publish(exchange = LOGNAME,
+                              routing_key = ROUTING_KEY,
+                              body = message)
+        print(' [x] %s Sent' % message)         ##  Print that message
+        time.sleep(5)                           ##  Sleep for five seconds
     except KeyboardInterrupt:
-        exit()
+        exit()                                  ##  Exeunt

@@ -1,39 +1,50 @@
-import socket
-import struct
-import time
+"""
 
+Author: Sam Celani
 
+File:   dummySocket.py
+
+Description:
+
+    This file simulates having received data,
+    and sends it over a socket to the MABX.
+    
+    It is part of the ARPA-E Project: NEXTCAR.
+    
+"""
+
+###########################################################
+
+#
+#   IMPORTS
+#       All imports are nested in a try-except block
+#       to avoid fatal errors, or at least to simply
+#       put them off for a little bit.
+#
+
+try:
+    
+    import socket       ##  Used to send data over a socket connection
+    import struct       ##  Used to pack data before sending
+    import time         ##  Used to sleep between sending messages
+    
+except Exception as ex:
+    print(ex)
+
+###########################################################
+
+#
+#   SOCKET AND DATA
+#
+
+##  Define a socket
 sock = socket.socket(socket.AF_INET,        # Internet
                      socket.SOCK_DGRAM)     # UDP
 
-# Set the data, big endian format
+##  Determine the format of the data
 dataFormat = '!Hdddiiddddddddddi'
-VEHICLE_ID = 12345
-SIMULATION_TIME_STEP = 0.1
-CURRENT_TIME = 234.567
-PREDICTION_HORIZON = 6
-PREDICTED_VEHICLE_VELOCITY = [34.5,35.1,36.2,38.5]
-PREDICTED_VEHICLE_X = [-1234.5432,-1234.5897,-1234.6666,-1234.7632]
-PREDICTED_VEHICLE_Y = [-1234.5432,-1234.5897,-1234.6666,-1234.7632]
 
-body = struct.pack(dataFormat,
-                      VEHICLE_ID,
-                      SIMULATION_TIME_STEP,
-                      CURRENT_TIME,
-                      PREDICTION_HORIZON,
-                      PREDICTED_VEHICLE_VELOCITY[0],
-                      PREDICTED_VEHICLE_VELOCITY[1],
-                      PREDICTED_VEHICLE_VELOCITY[2],
-                      PREDICTED_VEHICLE_VELOCITY[3],
-                      PREDICTED_VEHICLE_X[0],
-                      PREDICTED_VEHICLE_X[1],
-                      PREDICTED_VEHICLE_X[2],
-                      PREDICTED_VEHICLE_X[3],
-                      PREDICTED_VEHICLE_Y[0],
-                      PREDICTED_VEHICLE_Y[1],
-                      PREDICTED_VEHICLE_Y[2],
-                      PREDICTED_VEHICLE_Y[3])
-
+##  Pack the data into bytes
 body = struct.pack(dataFormat,
                    123,
                    0.1,
@@ -53,22 +64,30 @@ body = struct.pack(dataFormat,
                    25,
                    1)
 
-
+##  IP of MABX
 remoteIP = '192.168.150.1'
+
+##  IP of computer
 computerIP = '192.168.150.10'
+
+##  Port
 UDP_PORT = 5002
 
+##  Bind port to IP of computer
 sock.bind((computerIP, UDP_PORT))
 
-while(True):
+while True:
     try:
+        ##  Send data over socket to UDP_PORT of MABX IP
         sock.sendto(body,  (remoteIP,  UDP_PORT) )
-        print bytes(body)
+        ##  Print data
+        print(bytes(body))
+        ##  Sleep for five seconds to avoid sending constant messages
         time.sleep(5)
     except KeyboardInterrupt:
+
+        ##  This code block came from Pilot
+        ##  Shuts down the socket
         sock.shutdown(socket.SHUT_RDWR)
         sock.close()
-
-
-
 

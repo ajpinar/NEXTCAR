@@ -1,14 +1,8 @@
-import threading
+﻿import threading
 import pika
 import os
 import struct
 import socket
-
-try:
-    import parse
-    #print 'parsing'
-except:
-    print 'not parsed'
 
 # set to True to use Tony's CloudAMQP service
 useCloudAMQP = True
@@ -36,7 +30,6 @@ class Consumer:
 
         # Set the Rabbit MQ parameters
         self.serverip = SERVERIP
-        #self.serverip = '141.219.205.25'
         self.credentials = CREDENTIALS
         if useCloudAMQP:
             print "Using CloudAMQP"
@@ -44,14 +37,9 @@ class Consumer:
         else:
             print "Using local server"
             self.params = pika.ConnectionParameters(self.serverip,
-                                                5672,
-                                                '/',
-                                                self.credentials)
-
-        # This is for CloudAMQP
-        url = 'amqp://cnplsytz:ST-2S7zCbeV9dknueCgJIzrCZpk0dUGW@termite.rmq.cloudamqp.com/cnplsytz'
-        #self.params = pika.URLParameters(url)
-        
+                                    5672,
+                                    '/',
+                                    self.credentials)
         self.params.socket_timeout = 10
         self.connection = None                                      # Initialize Connection object
         self.channel = None                                         # Initialize Channel object
@@ -90,7 +78,7 @@ class Consumer:
             # Tony changed to 'topic' to work with Kuilin's group
             self.channel.exchange_declare(exchange=self.logName,
                              exchange_type='topic',
-                                          auto_delete = True)
+                             auto_delete=True)
 
             # Set up a random queue for the consumer.
             result = self.channel.queue_declare(exclusive=True)
@@ -119,43 +107,18 @@ class Consumer:
                 self.channel.stop_consuming()
                 self.connection.close()
                 print("  Stopped RabbitMQ Consumer Log:  %s" % self.logName)
-
+elf.params = pika.ConnectionParameters(self.serverip,
+                                   5672,
+                                   '/',
+                                   self.credentials)
             self.sock.shutdown(socket.SHUT_RDWR)
             self.sock.close()
             print("  UDP %s::%i Shutdown" % (self.UDP_IP, self.UDP_PORT))
 
     def callback(self, ch, method, properties, body):
         """Code to perform when a message is received"""
-        
-        try:
-            body = parse.process(body)
-        except:
-            pass
-##        dataFormat = '!idHdddiiddddddddddi'
-##        body = struct.pack(dataFormat,
-##                           5,
-##                           5.0,
-##                       123,
-##                       0.1,
-##                       1.6,
-##                       5,
-##                       16,
-##                       5,
-##                       35,
-##                       35,
-##                       35,
-##                       35,
-##                       35,
-##                       25,
-##                       25,
-##                       25,
-##                       25,
-##                       25,
-##                       1)
-
-        
+        #Tony added below for debug
+        print(" [x] %r" % body)
         # for this routine, the data merely needs to be re-sent on the UDP connection
         # A data validity check may be good to add in the future
         self.sock.sendto(body,(self.remoteIP, self.UDP_PORT))
-        #Tony added below for debug
-        print(" [x] %r" % body)

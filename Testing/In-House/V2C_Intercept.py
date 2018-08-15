@@ -50,17 +50,13 @@ Imported Files:
 
 try:
     
-    import configInit                   ##  Used to decide server       | Function::init
-    import matplotlib.pyplot as plt     ##  Used in plotting            | Function::gpsSLLookup
-                                        ##                              | Function::gpsRGLookup
-                                        ##                              | Function::callback
-                                        ##                              | Part::Testing
-    
-    import numpy as np                  ##  Used in plotting            | Part::Testing
-    import pika                         ##  Used in data transmission   | Function::init
-    import scipy.io as sp               ##  Used for SL and RG lookup   | Part::body
-    import send                         ##  Used to send data           | Function::callback
-    import sys                          ##  Used for testing            | Part::TESTING
+    import configInit                   ##  Used to decide server
+    import matplotlib.pyplot as plt     ##  Used in plotting    
+    import numpy as np                  ##  Used in plotting
+    import pika                         ##  Used in data transmission
+    import scipy.io as sp               ##  Used for SL and RG lookup
+    import send                         ##  Used to send data
+    import sys                          ##  Used for testing
     
 except Exception as ex:
     print(ex)
@@ -189,19 +185,19 @@ def gpsSLLookUp( lat, long ):
     global gpsSpeedData         ##  Collection of valid Speed Limit coordinates
     global gpsMPH               ##  Valid Speed Limits
 
-##  Finds the difference between all valid points and the live coordinate
+    ##  Finds the difference between all valid points and the live coordinate
     difSL = [(abs(long - gpsSpeedData[0][c]), abs(lat - gpsSpeedData[1][c])) for c in range(len(gpsSpeedData[0]))]
-##  Converts difference to distance
+    ##  Converts difference to distance
     disSL = [ ( ( latDif )**2 + ( longDif )**2 )**0.5 for (latDif, longDif) in difSL ]
 
-##  Finds the minimum of the distances
+    ##  Finds the minimum of the distances
     m = min(disSL)
-##  Finds index of the minimum distance
+    ##  Finds index of the minimum distance
     i = disSL.index(m)
 
-##  Prints Speed Limit at desired index
+    ##  Prints Speed Limit at desired index
     print(gpsMPH[i][0])
-##  Prints corresponding Latitude and Longitude of desired speed limit
+    ##  Prints corresponding Latitude and Longitude of desired speed limit
     print('Lat',gpsSpeedData[0][i],'\nLong',gpsSpeedData[1][i])
     
     return gpsMPH[i][0]     ##  Returns desired speed limit, for use with sending back
@@ -217,27 +213,27 @@ def gpsGradeLookUp( lat, long ):
     global gpsGradeData     ##  Collection of valid Road Grade coordinates
     global rgL              ##  Valid Road Grades
 
-##  Finds the difference between all valid points and the live coordinate
+    ##  Finds the difference between all valid points and the live coordinate
     dif = [(abs(long - gpsGradeData[0][c]), abs(lat - gpsGradeData[1][c])) for c in range(len(gpsGradeData[0]))]
-##  Converts difference to distance
+    ##  Converts difference to distance
     dis = [ ( ( latDif )**2 + ( longDif )**2 )**0.5 for (latDif, longDif) in dif ]
 
-##  Finds the minimum of the distances
+    ##  Finds the minimum of the distances
     m = min(dis)
-##  Finds index of the minimum distance
+    ##  Finds index of the minimum distance
     i = dis.index(m)
 
-##  Prints Road Grade at desired index
+    ##  Prints Road Grade at desired index
     print(rgL[i])
-##  Prints corresponding Latitude and Longitude of desired road grade
+    ##  Prints corresponding Latitude and Longitude of desired road grade
     print('Lat',gpsGradeData[0][i],'\nLong',gpsGradeData[1][i])
 
-##  Plots a red X along the drive cycle in the closest point to live GPS coordinates
+    ##  Plots a red X along the drive cycle in the closest point to live GPS coordinates
     plt.scatter(gpsGradeData[1][i],gpsGradeData[0][i],marker = 'x', c = 'red')
-##  Shows the plot
+    ##  Shows the plot
     plt.show()
 
-##  I don't understand this line, but it seems important  -Sam
+    ##  I don't understand this line, but it seems important  -Sam
     plt.pause(0.0001)
     
     return rgL[i]       ##  Returns desired road grade, for use with sending back
@@ -272,7 +268,7 @@ def callback(ch, method, properties, body):
     plt.scatter(float(data[13]), float(data[12]), c = 'green')  ##  Prints the coordinate 
     plt.show()                                                  ##  Shows the plot
 
-##  I don't understand this line, but it seems important  -Sam
+    ##  I don't understand this line, but it seems important  -Sam
     plt.pause(0.0001)                                           
 
     send.fullSend(sl,
@@ -292,7 +288,7 @@ def callback(ch, method, properties, body):
 #   CONNECTION
 #
 
-##  Declare connection based off of params variable from Part::USE OF CONFIGINIT
+##  Declare connection based off of params variables
 connection = pika.BlockingConnection(params)
 
 ##  Make channel from connection
@@ -304,11 +300,11 @@ channel.exchange_declare(exchange = LOGNAME,
                          auto_delete = True)      
 
 ##  Declare queue
-q2 = channel.queue_declare(exclusive = True)
+q = channel.queue_declare(exclusive = True)
 
-##  Bind queue to exchange
-channel.queue_bind(exchange = 'cacc_test_exchange',
-                   queue = q2.method.queue,
+##  Bind queue to exchange over routing key
+channel.queue_bind(exchange = LOGNAME,
+                   queue = q.method.queue,
                    routing_key = ROUTING_KEY)
 
 ###########################################################

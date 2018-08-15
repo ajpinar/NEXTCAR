@@ -178,10 +178,10 @@ def init(param = None):
         
 
 
-## Testing
-if len(sys.argv) > 1:
-    init(str(sys.argv[1]))
-else:
-    init()
+#### Testing
+##if len(sys.argv) > 1:
+##    init(str(sys.argv[1]))
+##else:
+##    init()
 
 

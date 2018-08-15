@@ -1,6 +1,42 @@
-import pika
-import struct
+"""
 
+Author: Sam Celani
+
+File:   send.py
+
+Description:
+
+    This file is called by V2C_Intercept.py to resend
+    data back to a waiting consumer file.
+    
+    It is part of the ARPA-E Project: NEXTCAR.
+    
+"""
+
+###########################################################
+
+#
+#   IMPORTS
+#       All imports are nested in a try-except block
+#       to avoid fatal errors, or at least to simply
+#       put them off for a little bit.
+#
+
+try:
+    
+    import pika         ##  Used in data transmission
+    import struct       ##  Used to pack data for transmission
+
+except Exception as ex:
+    print(ex)
+
+###########################################################
+
+#
+#   FUNCTION DECLARATION 1
+#       Takes speed limit and road grade data, and
+#       the appropriate information to create a
+#       connection to the waiting consumer file.
 
 def fullSend( sl, rg, serverIP = None, creds = None, xch = None, rtk = None):
 

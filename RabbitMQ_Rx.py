@@ -1,56 +1,118 @@
-﻿import threading
-import pika
-import os
-import struct
-import socket
+"""
 
-# set to True to use Tony's CloudAMQP service
-useCloudAMQP = True
+Author: Sam Celani
+        Pilot Systems
 
-# URL for Tony's AMQP Server
-urlT = 'amqp://cnplsytz:ST-2S7zCbeV9dknueCgJIzrCZpk0dUGW@termite.rmq.cloudamqp.com/cnplsytz'
+File:   RabbitMQ_Rx.py
+
+Description:
+
+    This file consumes data sent wirelessly, and sends
+    it over UDP to the MABX.
+    
+    It is part of the ARPA-E Project: NEXTCAR.
+
+Imported Files:
+
+    parse.py
+
+        Used for padding received data packet.
+    
+"""
+
+
+###########################################################
+
+#
+#   IMPORTS
+#       All imports are nested in a try-except block
+#       to avoid fatal errors, or at least to simply
+#       put them off for a little bit.
+#
+
+try:
+
+    import threading    ##  Used for running the consumer in a seperate thread
+    import pika         ##  Used for data communications
+    import socket       ##  Used for UDP communications to the MABX
+    import parse        ##  Used for padding the data packet
+    
+except Exception as ex:
+    print(ex)
+
+###########################################################
+
+#
+#   CLASS DEFINITION 1
+#
+
 
 class Consumer:
 
-    def __init__(self, SERVERIP, CREDENTIALS, IP, PORT, REMOTEIP, LOGNAME, UNIQUE_ROUTING_KEY, FANOUT_ROUTING_KEY):
+    #######################################################
+
+    #
+    #   FUNCTION DEFINITION 1
+    #       Initializes variables
+    #
+
+
+    def __init__(self, SERVERIP, CREDENTIALS, IP, PORT, REMOTEIP, LOGNAME, ROUTING_KEY):
 
         """
         Parmeters:
 
-        SERVERIP=   (string)    IP address for ther cloud server
-        CREDENTIALS= (pika.plaincredentials) credentials to log into cloud server
-        IP      =   (string)    The IP address for the UDP connection to the MABX (i.e. "127.0.0.1").
-        PORT    =   (int)       The port for the UDP socket.
-        LOGNAME =   (string)    The name of the Rabbit MQ logger exchange.
+        SERVERIP                =   (string)    IP address for ther cloud server
+        CREDENTIALS             =   (pika.PlainCredentials) credentials to log into cloud server
+        IP                      =   (string)    The IP address for the UDP connection to the MABX (i.e. "127.0.0.1").
+        PORT                    =   (int)       The port for the UDP socket.
+        LOGNAME                 =   (string)    The name of the Rabbit MQ logger exchange.
+        UNIQUE_ROUTING_KEY      =   (string)    The name of the Rabbit MQ routing key.
         """
 
-        # Set routing keys we'll receive info from
-        self.unique_routing_key = UNIQUE_ROUTING_KEY
-        self.fanout_routing_key = FANOUT_ROUTING_KEY
+        ##  Set routing keys we'll receive info from
+        self.routing_key = ROUTING_KEY
 
-        # Set the Rabbit MQ parameters
+        ##  Set the Rabbit MQ parameters
         self.serverip = SERVERIP
+        
+        ##  Set Rabbit MQ credentials
         self.credentials = CREDENTIALS
-        if useCloudAMQP:
-            print "Using CloudAMQP"
-            self.params = pika.URLParameters(urlT)
-        else:
-            print "Using local server"
-            self.params = pika.ConnectionParameters(self.serverip,
-                                    5672,
-                                    '/',
-                                    self.credentials)
-        self.params.socket_timeout = 10
-        self.connection = None                                      # Initialize Connection object
-        self.channel = None                                         # Initialize Channel object
-        self.logName = LOGNAME                                      # Log name should match the Publisher's name
 
-        # Set the UDP parametes
+        ##  Determine if the server uses credentials
+        if self.credentials is None:
+            ##  Determine if the URL server is being used
+            if self.serverip.contains('@'):
+                self.params = pika.URLParameters(self.serverip)
+            ##  This is most likely my local server, should never actually be used  -Sam
+            else:
+                self.params = pika.ConnectionParameters(self.serverip)
+                print('Warning: You are using a server without credentials.',end = ' ')
+                print('This is not recommended.')
+        else:
+            self.params = pika.ConnectionParameters(self.serverip,
+                                                5672,
+                                                '/',
+                                                self.credentials)
+
+        self.params.socket_timeout = 10                 ##  Initialize socket timeout
+        self.connection = None                          ##  Initialize Connection object
+        self.channel = None                             ##  Initialize Channel object
+        self.logName = LOGNAME                          ##  Log name should match the Publisher's name
+
+        ##  Set the UDP parametes
         self.UDP_IP = IP
         self.UDP_PORT = PORT
         self.remoteIP = REMOTEIP
-        self.sock = socket.socket(socket.AF_INET,                   # Internet
-                     socket.SOCK_DGRAM)                             # UDP
+        self.sock = socket.socket(socket.AF_INET,       ##  Internet
+                     socket.SOCK_DGRAM)                 ##  UDP
+
+    #######################################################
+
+    #
+    #   FUNCTION DEFINITION 2
+    #       Starts the consumer on a separate thread
+    #
 
     def start(self):
         """
@@ -62,63 +124,73 @@ class Consumer:
         self.th.start()
         self.th.join(0)
 
+    #######################################################
+
+    #
+    #   FUNCTION DEFINITION 3
+    #       Makes connections and consumes
+    #
+
     def receiveLog(self):
         """ Create a logger type of exchange so messages can be sent to multiple receivers. """
 
         try:
-            # bind to the host IP/SOCKET so that the messages don't go out over the default internet connection
+            ##  Bind to the host IP/SOCKET so that the messages don't go out over the default internet connection
             self.sock.bind((self.UDP_IP, self.UDP_PORT))
 
-            # establish the RabbitMQ connection
+            ##  Establish the RabbitMQ connection
             self.connection = pika.BlockingConnection(self.params)
             self.channel = self.connection.channel()
 
-            # The fanout exchange broadcasts all the messages it receives to all the queues it knows.
-            # That is what we need for our logger.
-            # Tony changed to 'topic' to work with Kuilin's group
+            ##  Declare exchange
             self.channel.exchange_declare(exchange=self.logName,
-                             exchange_type='topic',
-                             auto_delete=True)
+                                          exchange_type='topic',
+                                          auto_delete = True)
 
-            # Set up a random queue for the consumer.
+            ##  Set up a random queue for the consumer.
             result = self.channel.queue_declare(exclusive=True)
 
-            # Get the random queue name and bind our channel to the queue.
+            ##  Get the random queue name
             queue_name = result.method.queue
-            self.channel.queue_bind(exchange=self.logName,
-                       queue=queue_name,
-                       routing_key=self.unique_routing_key)
-            self.channel.queue_bind(exchange=self.logName,
-                       queue=queue_name,
-                       routing_key=self.fanout_routing_key)
 
-            # Set up the consumer and set the callback function when a message is received
+            ##  Bind exchange to queue
+            self.channel.queue_bind(exchange=self.logName,
+                       queue=queue_name,
+                       routing_key=self.routing_key)
+
+            ##  Set up the consumer and set the callback function when a message is received
             self.channel.basic_consume(self.callback,
-                          queue=queue_name,
-                          no_ack=True)
+                                       queue=queue_name,
+                                       no_ack=True)
 
-            # Start the consumer
+            ##  Start the consumer
             print("  Started RabbitMQ Consumer Log:  %s" % self.logName)
             self.channel.start_consuming()
 
         finally:
-            # Gracefully close all connections upon normal or error exit
+            ##  Gracefully close all connections upon normal or error exit
             if self.connection is not None:
                 self.channel.stop_consuming()
                 self.connection.close()
                 print("  Stopped RabbitMQ Consumer Log:  %s" % self.logName)
-elf.params = pika.ConnectionParameters(self.serverip,
-                                   5672,
-                                   '/',
-                                   self.credentials)
+
             self.sock.shutdown(socket.SHUT_RDWR)
             self.sock.close()
             print("  UDP %s::%i Shutdown" % (self.UDP_IP, self.UDP_PORT))
 
+    #######################################################
+
+    #
+    #   FUNCTION DEFINITION 4
+    #       Function to be called when data is received
+    #
+
     def callback(self, ch, method, properties, body):
         """Code to perform when a message is received"""
-        #Tony added below for debug
-        print(" [x] %r" % body)
+        
+        body = parse.process(body)
+
         # for this routine, the data merely needs to be re-sent on the UDP connection
         # A data validity check may be good to add in the future
         self.sock.sendto(body,(self.remoteIP, self.UDP_PORT))
+        print(" [x] %r" % body)
