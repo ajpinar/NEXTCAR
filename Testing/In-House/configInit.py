@@ -25,7 +25,7 @@ Description:
 
 try:
 
-    import sys      ##  Used to see command line arguments  | Part::Testing
+    import sys      ##  Used to see command line arguments
 
 except Exception as ex:
     print(ex)
@@ -173,7 +173,6 @@ def init(param = None):
     else:
         init()
 
-    print(ra[0])
     return ra
         
 

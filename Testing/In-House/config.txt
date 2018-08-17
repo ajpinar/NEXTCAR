@@ -12,7 +12,7 @@ localhost,141.219.205.25
 routing key_S,vehicle_2
 exchange,cacc_test_exchange
 
-mobile lab,166.152.103.250
+mobile lab,141.219.210.111
 credentials,aps-lab|aps-lab
 routing key_M,cloud_cacc
 exchange,cacc_test_exchange

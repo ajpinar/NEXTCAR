@@ -1,12 +1,15 @@
 ﻿"""
 
 Author: Sam Celani
+        Pilot Systems
 
 File:   StartConsumer.py
 
 Description:
 
-    This
+    This file determines the connection parameters from RabbitMQ_Rx.py.
+    This file is essentially obsolete, and could (READ: should) be done
+    entirely by configInit.py. In the future, this file might be deleted.
     
     It is part of the ARPA-E Project: NEXTCAR.
 
@@ -34,10 +37,10 @@ Imported Files:
 
 try:
 
-    import configInit
-    import pika
-    import RabbitMQ_Rx
-    import time
+    import configInit       ##  Used to determine connection params
+    import pika             ##  Used for wireless communications
+    import RabbitMQ_Rx      ##  Actually does the heavy lifting
+    import time             ##  Used for sleep function
 
 except Exception as ex:
     print(ex)

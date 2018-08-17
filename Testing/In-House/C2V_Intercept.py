@@ -32,10 +32,10 @@ Imported Files:
 
 try:
     
-    import configInit   ##  Used to decide server       | Function::init
-    import datetime     ##  Used in file naming         | Function::getTheDate
-    import pika         ##  Used in data transmission   | Function::init
-    import sys          ##  Used for testing            | Part::TESTING
+    import configInit   ##  Used to decide server
+    import datetime     ##  Used in file naming
+    import pika         ##  Used in data transmission
+    import sys          ##  Used for testing
 
 except Exception as ex:
     print(ex)
@@ -43,54 +43,98 @@ except Exception as ex:
 ###########################################################
 
 #
-#   FUNCTION DEFINITION 1
-#       Initialization function
-#           Initializes connection, exchange, queues, and their bindings
+#   INITIALIZE VARIABLES
+#
 
-def init(SERVERIP, CREDENTIALS, LOGNAME, UNIQUE_ROUTING_KEY, FANOUT_ROUTING_KEY, FLAG):
+##  Keeping this for defaulting, in case configInit fails
 
-##  Define the connection parameters and make a connection
-    if FLAG:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host = SERVERIP,
-                                                                       port = 5672,
-                                                                       virtual_host = '/',
-                                                                       credentials = CREDENTIALS))
-    else:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host = SERVERIP))
+SERVERIP =      ['141.219.181.216', 'Kuilin']
+SERVERIP =      ['166.152.103.250', 'Mobile Lab']
+credA =         'aps-lab'
+credB =         'aps-lab'
+CREDENTIALS =   pika.PlainCredentials(credA, credB)
+LOGNAME =       'cacc_test_exchange'
+ROUTING_KEY =   'cloud_cacc'
 
-##  Create a channel
-    channel = connection.channel()
+params = None
 
-##  Declare exhange
-    channel.exchange_declare(exchange = LOGNAME,
-                             exchange_type = 'topic',
-                             auto_delete = True)
-##  Declare queue
-    q2 = channel.queue_declare(exclusive = True)
-
-##  Bind queue to exchange
-    channel.queue_bind(exchange = LOGNAME,
-                       queue = q2.method.queue,
-                       routing_key = UNIQUE_ROUTING_KEY)
-
-
-    print(' [*] Waiting for packets...')
-
-##  Define a consumption
-    channel.basic_consume(callback,
-                          queue = q2.method.queue,
-                          no_ack = True)
-
-##  Acutal consumption
-    try:                            ##  Consumption is nested in a try-
-        channel.start_consuming()   ##  xcept block, in the hopes that it
-    except KeyboardInterrupt:       ##  handles a KeyboardInterrupt gracefully. 
-        exit()                      ##  Spoiler Alert:: It doesn't work very well
-    
 ###########################################################
 
 #
-#   FUNCTION DEFINITION 2
+#   USE OF CONFIGINIT
+#
+
+try:
+    # kuilin, beta, sam, mobile_lab, tony_url
+    datum = configInit.init('tony_url')
+    SERVERIP = datum[0]
+    if len(datum) is 3:
+        LOGNAME = datum[1]
+        ROUTING_KEY = datum[2]
+        params = pika.URLParameters(SERVERIP)
+        print( SERVERIP, LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+    elif len(datum) is 4:
+        credA = datum[1][0]
+        credB = datum[1][1]
+        if not datum[1][0] is None:
+            CREDENTIALS = pika.PlainCredentials(credA,credB)
+        else:
+            CREDENTIALS = None
+        LOGNAME = datum[2]
+        ROUTING_KEY = datum[3]
+        params = pika.ConnectionParameters(host = SERVERIP,
+                                           port = 5672,
+                                           virtual_host = '/',
+                                           credentials = CREDENTIALS)
+                                           
+        print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+    else:
+        # shouldn't even be possible
+        print('What?')
+except:
+    print('Proceeding with default connection information:\n')
+    params = pika.ConnectionParameters(host = SERVERIP,
+                                       port = 5672,
+                                       virtual_host = '/',
+                                       credentials = CREDENTIALS)
+    
+    print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+
+##  Create a connection
+connection = pika.BlockingConnection(params)
+
+##  Create a channel
+channel = connection.channel()
+
+##  Declare exhange
+channel.exchange_declare(exchange = LOGNAME,
+                         exchange_type = 'topic',
+                         auto_delete = True)
+##  Declare queue
+q = channel.queue_declare(exclusive = True)
+
+##  Bind queue to exchange
+channel.queue_bind(exchange = LOGNAME,
+                   queue = q.method.queue,
+                   routing_key = ROUTING_KEY)
+
+print(' [*] Waiting for packets...')
+
+##  Define a consumption
+channel.basic_consume(callback,
+                      queue = q.method.queue,
+                      no_ack = True)
+
+##  Acutal consumption
+try:                            ##  Consumption is nested in a try-
+    channel.start_consuming()   ##  xcept block, in the hopes that it
+except KeyboardInterrupt:       ##  handles a KeyboardInterrupt gracefully. 
+    exit()                      ##  Spoiler Alert:: It doesn't work very well
+
+###########################################################
+
+#
+#   FUNCTION DEFINITION 1
 #       Basic Callback function for StartConsumer.py
 #           This is what happens when data is received
 
@@ -106,7 +150,7 @@ def callback(ch, method, properties, body):
 ###########################################################
 
 #
-#   FUNCTION DEFINITION 3
+#   FUNCTION DEFINITION 2
 #       Basic Callback function for email exchange
 #           This is what happens when data is received
 
@@ -120,34 +164,6 @@ def getTheDate():
     timestamp = timestamp + 's'                 # Append 's' for seconds                --> YYYY-Mo-DD_HHhMimSSs
 
     return 'RabbitMq_Rx_' + timestamp + '.txt'  # Create filename
-
-###########################################################
-
-"""
-
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'test':
-        callbackTest(sampleData)
-        exit()
-    elif sys.argv[1] == 'local':
-        datum = configInit.init(True, False)
-        init('localhost', None, datum[3][0], datum[2][0], 'cloud_fanout', False)
-    else:
-        datum = configInit.init(True, True)
-else:
-    datum = configInit.init(False, False)
-
-print(datum,'\n')
-
-# Used to see if the script will run without errors
-init(datum[0][0],
-     pika.PlainCredentials(datum[1][0], datum[1][1]),
-     datum[3][0],
-     datum[2][0],               # If this doesn't work, try 'vehicle_2' again
-     'cloud_fanout',
-     True)
-
-"""
 
 ###########################################################
 

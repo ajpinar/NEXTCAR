@@ -115,7 +115,7 @@ for b in range(len(biggerData['grade_grid'])):
 
 
 plt.scatter(pltLong, pltLat, marker = '.')      ##  Plot valid lat long pairs
-plt.show()                                      ##  Show plot
+plt.show(block = False)                                      ##  Show plot
 
 ##  I don't understand this line, but it seems important  -Sam
 plt.pause(0.0001)
@@ -132,11 +132,11 @@ gpsSpeedData = np.array([gpsLat,gpsLong])       ##  Format Speed Limit data for 
 
 try:
     # kuilin, beta, sam, mobile_lab, tony_url
-    datum = configInit.init('mobile_lab')
+    datum = configInit.init('tony_url')
     SERVERIP = datum[0]
     if len(datum) is 3:
-        ROUTING_KEY = datum[1]
-        LOGNAME = datum[2]
+        LOGNAME = datum[1]
+        ROUTING_KEY = datum[2]
         params = pika.URLParameters(SERVERIP)
         print( SERVERIP, LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
     elif len(datum) is 4:
@@ -146,8 +146,8 @@ try:
             CREDENTIALS = pika.PlainCredentials(credA,credB)
         else:
             CREDENTIALS = None
-        ROUTING_KEY = datum[2]
-        LOGNAME = datum[3]
+        LOGNAME = datum[2]
+        ROUTING_KEY = datum[3]
         params = pika.ConnectionParameters(host = SERVERIP,
                                            port = 5672,
                                            virtual_host = '/',
@@ -253,12 +253,12 @@ def callback(ch, method, properties, body):
     global ROUTING_KEY      ##  This is the routing key, used for send.fullsend()
 
     
-    if len(sys.argv) is 2 and sys.argv[1].lower == '-v':    ##  V E R B O S E
+    if len(sys.argv) is 2 and sys.argv[1].lower() == '-v':  ##  V E R B O S E
         print(len(body))                                    ##  Prints how long the message was
         print(type(body))                                   ##  Prints the type of the message
         
     print(' [x] %s\n' % body)               ##  Prints the actual message
-    logfile.write(str(data)[1:-1] + '\n')   ##  Writes to logfile
+    logfile.write(str(body)[1:-1] + '\n')   ##  Writes to logfile
     
     data = str(body).split(', ')        ##  Splits data into usable chunks
     
@@ -276,7 +276,7 @@ def callback(ch, method, properties, body):
                   serverIP = SERVERIP,
                   creds = CREDENTIALS,
                   xch = LOGNAME,
-                  rtk = ROUTING_KEY)       ##  Send data out
+                  rtk = 'controller_1')       ##  Send data out
 
 
         
@@ -339,7 +339,7 @@ print(' [*] Waiting for packets...')
 
 ##  Define consumption
 channel.basic_consume(callback,
-                      queue = q2.method.queue,
+                      queue = q.method.queue,
                       no_ack = True)
 
 

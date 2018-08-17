@@ -45,7 +45,7 @@ def fullSend( sl, rg, serverIP = None, creds = None, xch = None, rtk = None):
         ##  This doesn't seem to be the most accurate way to find a URL,
         ##  but at the same time, I can't imagine having too many different
         ##  URL's too have to choose from   -Sam
-        if serverIP.contains('@'):
+        if '@' in serverIP:
             params = pika.URLParameters(serverIP)       ##  Create parameters from URL
         else:
             ##  Create parameters from IP and credentials
