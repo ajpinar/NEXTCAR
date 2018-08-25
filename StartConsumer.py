@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
 try:
     # kuilin, beta, sam, mobile_lab, tony_url
-    datum = configInit.init('mobile_lab')
+    datum = configInit.init('tony_url')
     SERVERIP = datum[0]
     if len(datum) is 3:
         ROUTING_KEY = datum[1]
@@ -106,12 +106,11 @@ except:
 
 ###########################################################
 
-    
-    con = RabbitMQ_Rx.Consumer(SERVERIP, CREDENTIALS, IP, PORT, REMOTEIP, LOGNAME, ROUTING_KEY, FANOUT_ROUTING_KEY)
-    con.start()
+con = RabbitMQ_Rx.Consumer(SERVERIP, CREDENTIALS, IP, PORT, REMOTEIP, LOGNAME, ROUTING_KEY)
+con.start()
 
-    print('Script ''StartConsumer'' Started.  Press ^C or close window to stop...')
-    while True:
-        time.sleep(1.0)
-        #main loop
-        pass
+print('Script ''StartConsumer'' Started.  Press ^C or close window to stop...')
+while True:
+    time.sleep(1.0)
+    #main loop
+    pass

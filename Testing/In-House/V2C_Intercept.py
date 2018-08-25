@@ -28,13 +28,13 @@ Imported Files:
     grad_grid_MTUDC_050318_CD_minaux_Beta_043.mat
 
         Contains all of the data required to look up the latitude and longitude
-        and return a road grade.
+        and return a road grade over the MTU Drive Cycle.
 
 
     mtudc_speed_limit_grid_mph.mat
 
         Contains all of the data required to look up the latitude and longitude
-        and return a speed limit.
+        and return a speed limit over the MTU Drive Cycle.
     
 """
 
@@ -78,7 +78,6 @@ ROUTING_KEY =   'cloud_cacc'
 
 params = None
 
-
 ##  Initialize road grade data
 pltLat = []
 pltLong = []
@@ -102,27 +101,26 @@ for b in range(len(biggerData['grade_grid'])):
 ##  In the matrix, entries are either nan or a valid value
         
         if biggerData['grade_grid'][b][c] > 0 or biggerData['grade_grid'][b][c] < 0:
-        #   Check to see if the value is valid
+        ##  Check to see if the value is valid
         
             pltLat.append(biggerData['latitude'][0][b])
-            #   Keep track of valid latitudes
+            ##  Keep track of valid latitudes
             
             pltLong.append(biggerData['longitude'][0][c])
-            #   Keep track of valid longitudes
+            ##  Keep track of valid longitudes
             
             rgL.append(biggerData['grade_grid'][b][c])
-            #   Keep track of corresponding road grades
+            ##  Keep track of corresponding road grades
 
 
 plt.scatter(pltLong, pltLat, marker = '.')      ##  Plot valid lat long pairs
-plt.show(block = False)                                      ##  Show plot
+plt.show(block = False)                         ##  Show plot
 
 ##  I don't understand this line, but it seems important  -Sam
 plt.pause(0.0001)
 
 gpsGradeData = np.array([pltLat, pltLong])      ##  Format Road Grade data for lookup
 gpsSpeedData = np.array([gpsLat,gpsLong])       ##  Format Speed Limit data for lookup
-
 
 ###########################################################
 
@@ -151,7 +149,8 @@ try:
         params = pika.ConnectionParameters(host = SERVERIP,
                                            port = 5672,
                                            virtual_host = '/',
-                                           credentials = CREDENTIALS)
+                                           credentials = CREDENTIALS,
+                                           socket_timeout = None)
                                            
         print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
     else:
@@ -162,17 +161,13 @@ except:
     params = pika.ConnectionParameters(host = SERVERIP,
                                        port = 5672,
                                        virtual_host = '/',
-                                       credentials = CREDENTIALS)
+                                       credentials = CREDENTIALS,
+                                       socket_timeout = None)
     
     print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
 
-
-
-
 ##  I don't understand this line, but it seems important  -Sam
 plt.ion()
-
-
 
 ###########################################################
 
@@ -180,6 +175,7 @@ plt.ion()
 #   FUNCTION DEFINITION 1
 #       Takes GPS (Lat, Long) and looks up the speed limit
 #       at that position
+#
 
 def gpsSLLookUp( lat, long ):
     global gpsSpeedData         ##  Collection of valid Speed Limit coordinates
@@ -198,7 +194,7 @@ def gpsSLLookUp( lat, long ):
     ##  Prints Speed Limit at desired index
     print(gpsMPH[i][0])
     ##  Prints corresponding Latitude and Longitude of desired speed limit
-    print('Lat',gpsSpeedData[0][i],'\nLong',gpsSpeedData[1][i])
+    print('Lat',gpsSpeedData[0][i],'\nLong',gpsSpeedData[1][i],'\n')
     
     return gpsMPH[i][0]     ##  Returns desired speed limit, for use with sending back
 
@@ -208,6 +204,7 @@ def gpsSLLookUp( lat, long ):
 #   FUNCTION DEFINITION 2
 #       Takes GPS (Lat, Long) and looks up the road grade
 #       at that position
+#
 
 def gpsGradeLookUp( lat, long ):
     global gpsGradeData     ##  Collection of valid Road Grade coordinates
@@ -226,10 +223,11 @@ def gpsGradeLookUp( lat, long ):
     ##  Prints Road Grade at desired index
     print(rgL[i])
     ##  Prints corresponding Latitude and Longitude of desired road grade
-    print('Lat',gpsGradeData[0][i],'\nLong',gpsGradeData[1][i])
+    print('Lat [',gpsGradeData[0][i],']\nLong [',gpsGradeData[1][i],']',sep = '')
 
     ##  Plots a red X along the drive cycle in the closest point to live GPS coordinates
     plt.scatter(gpsGradeData[1][i],gpsGradeData[0][i],marker = 'x', c = 'red')
+
     ##  Shows the plot
     plt.show()
 
@@ -257,15 +255,17 @@ def callback(ch, method, properties, body):
         print(len(body))                                    ##  Prints how long the message was
         print(type(body))                                   ##  Prints the type of the message
         
-    print(' [x] %s\n' % body)               ##  Prints the actual message
-    logfile.write(str(body)[1:-1] + '\n')   ##  Writes to logfile
+    print(' [x] %s\n' % body)           ##  Prints the actual message
     
+    with open('V2C_logfile.txt','a') as logfile:    ##  Open the logfile in append mode
+        logfile.write(str(body)[44:-1] + '\n')      ##  Writes to logfile, and then closes
+
     data = str(body).split(', ')        ##  Splits data into usable chunks
+       
+    sl = gpsSLLookUp( float(data[18]), float(data[17]) )        ##  Send coordinates to search algorithm
+    rg = gpsGradeLookUp( float(data[18]), float(data[17]) )     ##  Send coordinates to search algorithm
     
-    sl = gpsSLLookUp( float(data[13]), float(data[12]) )        ##  Send coordinates to search algorithm
-    rg = gpsGradeLookUp( float(data[13]), float(data[12]) )     ##  Send coordinates to search algorithm
-    
-    plt.scatter(float(data[13]), float(data[12]), c = 'green')  ##  Prints the coordinate 
+    plt.scatter(float(data[18]), float(data[17]), c = 'green', marker = 'P')  ##  Prints the coordinate 
     plt.show()                                                  ##  Shows the plot
 
     ##  I don't understand this line, but it seems important  -Sam
@@ -278,10 +278,9 @@ def callback(ch, method, properties, body):
                   xch = LOGNAME,
                   rtk = 'controller_1')       ##  Send data out
 
-
         
     print(' [*] Waiting for packets...')
-    
+
 ###########################################################
 
 #
@@ -338,19 +337,16 @@ print(' [*] Waiting for packets...')
 ###########################################################
 
 ##  Define consumption
-channel.basic_consume(callback,
-                      queue = q.method.queue,
-                      no_ack = True)
+channel.basic_consume(callback,                 ##  Function to be called when receiving data
+                      queue = q.method.queue,   ##  Over this queue
+                      no_ack = True)            ##  No acknowledgments sent
 
 
 ##  Acutal consumption
 try:
-    logfile = open('V2C_logfile.txt','a')       ##  Open the logfile in append mode
-
                                 ##  Consumption is nested in a try-
     channel.start_consuming()   ##  except block, in the hopes that it
 except KeyboardInterrupt:       ##  handles a KeyboardInterrupt gracefully. 
                                 ##  Spoiler Alert:: It doesn't work very well
-
-    logfile.close()                             ##  Close file before exiting the script
-    exit()                                      ##  Exit script
+    
+    exit()                      ##  Exit script

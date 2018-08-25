@@ -3,7 +3,7 @@
 Author: Sam Celani
         Pilot Systems
 
-File:   StartConsumer.py
+File:   StartPublisher.py
 
 Description:
 
@@ -45,24 +45,69 @@ try:
 except Exception as ex:
     print(ex)
 
+###########################################################
+
     
 #data sent by the vehicle continuously during operation
 if __name__ == "__main__":
+
+    #######################################################
+
+    #
+    #   DEFAULTING VARIABLES
+    #
     
     SERVERIP = '166.152.103.250'    ##  Mobile lab
     SERVERIP = '141.219.181.216'    ##  Kuilin's server ip
     SERVERIP = '141.219.205.25'     ##  Sam's server IP
     CREDENTIALS = pika.PlainCredentials('aps-lab', 'aps-lab')       ##  username/password, must be setup on server
     IP = '192.168.150.10'           ##  IP of the UDP connection to the uAutoBox (don't change)
-    PORT = 5000
+    PORT = 5000                     ##  Not entirely sure what this is, but it seems important
     LOGNAME = 'cacc_test_exchange'  ##  Exchange name
     ROUTING_KEY = 'cloud_cacc'      ##  Routing key
-    
-    pub = RabbitMQ_Tx.Publisher(SERVERIP, CREDENTIALS, IP, PORT, LOGNAME, ROUTING_KEY)
-    pub.start()
 
-    print('Script ''StartPublisherCont'' Started.  Press ^C or close window to stop...')
-    while True:
-        time.sleep(1.0)
-        #main loop
-        pass
+    #######################################################
+
+###########################################################
+
+#
+#   USE OF CONFIGINIT
+#
+
+try:
+    # kuilin, beta, sam, mobile_lab, tony_url
+    datum = configInit.init('tony_url')
+    SERVERIP = datum[0]
+    if len(datum) is 3:
+        ROUTING_KEY = datum[1]
+        LOGNAME = datum[2]
+        print( SERVERIP, LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+    elif len(datum) is 4:
+        credA = datum[1][0]
+        credB = datum[1][1]
+        if not datum[1][0] is None:
+            CREDENTIALS = pika.PlainCredentials(credA,credB)
+        else:
+            CREDENTIALS = None
+        ROUTING_KEY = datum[2]
+        LOGNAME = datum[3]
+                                           
+        print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+    else:
+        # shouldn't even be possible
+        print('What?')
+except:
+    print('Proceeding with default connection information:\n')
+    
+    print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+
+###########################################################
+
+pub = RabbitMQ_Tx.Publisher(SERVERIP, CREDENTIALS, IP, PORT, LOGNAME, ROUTING_KEY)
+pub.start()
+
+print('Script ''StartPublisherCont'' Started.  Press ^C or close window to stop...')
+while True:
+    time.sleep(1.0)
+    #main loop
+    pass

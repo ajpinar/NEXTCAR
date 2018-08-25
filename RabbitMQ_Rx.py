@@ -32,10 +32,10 @@ Imported Files:
 
 try:
 
-    import threading    ##  Used for running the consumer in a seperate thread
+    import parse        ##  Used for padding the data packet
     import pika         ##  Used for data communications
     import socket       ##  Used for UDP communications to the MABX
-    import parse        ##  Used for padding the data packet
+    import threading    ##  Used for running the consumer in a seperate thread
     
 except Exception as ex:
     print(ex)
@@ -62,18 +62,15 @@ class Consumer:
         """
         Parmeters:
 
-        SERVERIP                =   (string)    IP address for ther cloud server
-        CREDENTIALS             =   (pika.PlainCredentials) credentials to log into cloud server
-        IP                      =   (string)    The IP address for the UDP connection to the MABX (i.e. "127.0.0.1").
-        PORT                    =   (int)       The port for the UDP socket.
-        LOGNAME                 =   (string)    The name of the Rabbit MQ logger exchange.
-        UNIQUE_ROUTING_KEY      =   (string)    The name of the Rabbit MQ routing key.
+        SERVERIP                =   (string)                    IP address for ther cloud server
+        CREDENTIALS             =   (pika.PlainCredentials)     Credentials to log into cloud server
+        IP                      =   (string)                    The IP address for the UDP connection to the MABX (i.e. "127.0.0.1").
+        PORT                    =   (int)                       The port for the UDP socket.
+        LOGNAME                 =   (string)                    The name of the Rabbit MQ logger exchange.
+        UNIQUE_ROUTING_KEY      =   (string)                    The name of the Rabbit MQ routing key.
         """
 
-        ##  Set routing keys we'll receive info from
-        self.routing_key = ROUTING_KEY
-
-        ##  Set the Rabbit MQ parameters
+        ##  Set the Rabbit MQ server IP
         self.serverip = SERVERIP
         
         ##  Set Rabbit MQ credentials
@@ -82,7 +79,7 @@ class Consumer:
         ##  Determine if the server uses credentials
         if self.credentials is None:
             ##  Determine if the URL server is being used
-            if self.serverip.contains('@'):
+            if '@' in self.serverip:
                 self.params = pika.URLParameters(self.serverip)
             ##  This is most likely my local server, should never actually be used  -Sam
             else:
@@ -91,14 +88,20 @@ class Consumer:
                 print('This is not recommended.')
         else:
             self.params = pika.ConnectionParameters(self.serverip,
-                                                5672,
-                                                '/',
-                                                self.credentials)
+                                                    5672,
+                                                    '/',
+                                                    self.credentials)
 
-        self.params.socket_timeout = 10                 ##  Initialize socket timeout
-        self.connection = None                          ##  Initialize Connection object
-        self.channel = None                             ##  Initialize Channel object
-        self.logName = LOGNAME                          ##  Log name should match the Publisher's name
+        ##  Log name should match the Publisher's name
+        self.logName = LOGNAME
+
+        ##  Set routing keys used to receive info from
+        self.routing_key = ROUTING_KEY
+        
+        self.params.socket_timeout = None       ##  Initialize socket timeout
+        self.connection = None                  ##  Initialize Connection object
+        self.channel = None                     ##  Initialize Channel object
+
 
         ##  Set the UDP parametes
         self.UDP_IP = IP
