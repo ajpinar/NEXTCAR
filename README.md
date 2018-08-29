@@ -7,7 +7,7 @@ NOTE:	Any file that is imported into a different file will have a compiled compa
 		
 Contact Author:		sacelani@mtu.edu
 
-					sacelani@gmail.com
+sacelani@gmail.com
 Contact Advisor:	ajpinar@mtu.edu
 					
 			
