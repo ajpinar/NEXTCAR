@@ -43,7 +43,8 @@ try:
     import time             ##  Used for sleep function
 
 except Exception as ex:
-    print(ex)
+    print ex
+    exit()
 
 ###########################################################
 
@@ -84,7 +85,12 @@ try:
     if len(datum) is 3:
         ROUTING_KEY = datum[1]
         LOGNAME = datum[2]
-        print( SERVERIP, LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+        
+        print SERVERIP
+        print LOGNAME
+        print ROUTING_KEY
+        print '\n'
+        
     elif len(datum) is 4:
         credA = datum[1][0]
         credB = datum[1][1]
@@ -94,22 +100,31 @@ try:
             CREDENTIALS = None
         ROUTING_KEY = datum[2]
         LOGNAME = datum[3]
-                                           
-        print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+                
+        print SERVERIP
+        print '({0}, {1})'.format(credA, credB)
+        print LOGNAME
+        print ROUTING_KEY
+        print '\n'
+                                      
     else:
         # shouldn't even be possible
-        print('What?')
+        print 'What?'
 except:
-    print('Proceeding with default connection information:\n')
+    print 'Proceeding with default connection information:\n'
     
-    print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+    print SERVERIP
+    print '({0}, {1})'.format(credA, credB)
+    print LOGNAME
+    print ROUTING_KEY
+    print '\n'
 
 ###########################################################
 
 con = RabbitMQ_Rx.Consumer(SERVERIP, CREDENTIALS, IP, PORT, REMOTEIP, LOGNAME, ROUTING_KEY)
 con.start()
 
-print('Script ''StartConsumer'' Started.  Press ^C or close window to stop...')
+print 'Script ''StartConsumer'' Started.  Press ^C or close window to stop...'
 while True:
     time.sleep(1.0)
     #main loop

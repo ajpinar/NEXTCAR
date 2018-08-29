@@ -59,7 +59,8 @@ try:
     import sys                          ##  Used for testing
     
 except Exception as ex:
-    print(ex)
+    print ex
+    exit()
 
 ###########################################################
 
@@ -136,7 +137,12 @@ try:
         LOGNAME = datum[1]
         ROUTING_KEY = datum[2]
         params = pika.URLParameters(SERVERIP)
-        print( SERVERIP, LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+        
+        print SERVERIP
+        print LOGNAME
+        print ROUTING_KEY
+        print '\n'
+    
     elif len(datum) is 4:
         credA = datum[1][0]
         credB = datum[1][1]
@@ -151,20 +157,29 @@ try:
                                            virtual_host = '/',
                                            credentials = CREDENTIALS,
                                            socket_timeout = None)
-                                           
-        print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+        
+        print SERVERIP
+        print '({0}, {1})'.format(credA, credB)
+        print LOGNAME
+        print ROUTING_KEY
+        print '\n'
+        
     else:
         # shouldn't even be possible
-        print('What?')
+        print 'What?'
 except:
-    print('Proceeding with default connection information:\n')
+    print 'Proceeding with default connection information:\n'
     params = pika.ConnectionParameters(host = SERVERIP,
                                        port = 5672,
                                        virtual_host = '/',
                                        credentials = CREDENTIALS,
                                        socket_timeout = None)
     
-    print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+    print SERVERIP
+    print '({0}, {1})'.format(credA, credB)
+    print LOGNAME
+    print ROUTING_KEY
+    print '\n'
 
 ##  I don't understand this line, but it seems important  -Sam
 plt.ion()
@@ -192,9 +207,10 @@ def gpsSLLookUp( lat, long ):
     i = disSL.index(m)
 
     ##  Prints Speed Limit at desired index
-    print(gpsMPH[i][0])
+    print gpsMPH[i][0]
     ##  Prints corresponding Latitude and Longitude of desired speed limit
-    print('Lat',gpsSpeedData[0][i],'\nLong',gpsSpeedData[1][i],'\n')
+    print 'Lat ' + str(gpsSpeedData[0][i])
+    print 'Long ' + str(gpsSpeedData[1][i]) + '\n'
     
     return gpsMPH[i][0]     ##  Returns desired speed limit, for use with sending back
 
@@ -221,9 +237,10 @@ def gpsGradeLookUp( lat, long ):
     i = dis.index(m)
 
     ##  Prints Road Grade at desired index
-    print(rgL[i])
+    print rgL[i]
     ##  Prints corresponding Latitude and Longitude of desired road grade
-    print('Lat [',gpsGradeData[0][i],']\nLong [',gpsGradeData[1][i],']',sep = '')
+    print 'Lat [' + str(gpsGradeData[0][i]) + ']'
+    print 'Long [' + str(gpsGradeData[1][i]) + ']'
 
     ##  Plots a red X along the drive cycle in the closest point to live GPS coordinates
     plt.scatter(gpsGradeData[1][i],gpsGradeData[0][i],marker = 'x', c = 'red')
@@ -252,10 +269,10 @@ def callback(ch, method, properties, body):
 
     
     if len(sys.argv) is 2 and sys.argv[1].lower() == '-v':  ##  V E R B O S E
-        print(len(body))                                    ##  Prints how long the message was
-        print(type(body))                                   ##  Prints the type of the message
+        print len(body)                                     ##  Prints how long the message was
+        print type(body)                                    ##  Prints the type of the message
         
-    print(' [x] %s\n' % body)           ##  Prints the actual message
+    print ' [x] {}\n'.format(body)           ##  Prints the actual message
     
     with open('V2C_logfile.txt','a') as logfile:    ##  Open the logfile in append mode
         logfile.write(str(body)[44:-1] + '\n')      ##  Writes to logfile, and then closes
@@ -279,7 +296,7 @@ def callback(ch, method, properties, body):
                   rtk = 'controller_1')       ##  Send data out
 
         
-    print(' [*] Waiting for packets...')
+    print ' [*] Waiting for packets...'
 
 ###########################################################
 
@@ -326,13 +343,13 @@ if len(sys.argv) is 2 and sys.argv[1].lower() == 'test':
             file.write(fakePacket1+str(simStepIndex)+','+str(currentTime)+fakePacket2)
     exit()
 elif len(sys.argv) is 2 and sys.argv[1].lower() == 'usage':
-    print('python',sys.argv[0],'test\t\t\t-> Prints sample logfile with fake data and quits.')
-    print('python',sys.argv[0],'[ANYTHING BUT TEST]\t-> Appends data to file only.')
-    print('python',sys.argv[0],'\t\t\t-> Appends data to file and prints data to console.')
+    print 'python ' + str(sys.argv[0]) + ' test\t\t\t-> Prints sample logfile with fake data and quits.'
+    print 'python ' + str(sys.argv[0]) + ' [ANYTHING BUT TEST]\t-> Appends data to file only.'
+    print 'python ' + str(sys.argv[0]) + ' \t\t\t-> Appends data to file and prints data to console.'
     exit()
 
 
-print(' [*] Waiting for packets...')
+print ' [*] Waiting for packets...'
 
 ###########################################################
 

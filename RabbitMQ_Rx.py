@@ -38,7 +38,8 @@ try:
     import threading    ##  Used for running the consumer in a seperate thread
     
 except Exception as ex:
-    print(ex)
+    print ex
+    exit()
 
 ###########################################################
 
@@ -84,8 +85,8 @@ class Consumer:
             ##  This is most likely my local server, should never actually be used  -Sam
             else:
                 self.params = pika.ConnectionParameters(self.serverip)
-                print('Warning: You are using a server without credentials.',end = ' ')
-                print('This is not recommended.')
+                print 'Warning: You are using a server without credentials.'
+                print 'This is not recommended.'
         else:
             self.params = pika.ConnectionParameters(self.serverip,
                                                     5672,
@@ -167,7 +168,7 @@ class Consumer:
                                        no_ack=True)
 
             ##  Start the consumer
-            print("  Started RabbitMQ Consumer Log:  %s" % self.logName)
+            print "  Started RabbitMQ Consumer Log:  {}".format(self.logName)
             self.channel.start_consuming()
 
         finally:
@@ -175,11 +176,11 @@ class Consumer:
             if self.connection is not None:
                 self.channel.stop_consuming()
                 self.connection.close()
-                print("  Stopped RabbitMQ Consumer Log:  %s" % self.logName)
+                print "  Stopped RabbitMQ Consumer Log:  {}".format(self.logName)
 
             self.sock.shutdown(socket.SHUT_RDWR)
             self.sock.close()
-            print("  UDP %s::%i Shutdown" % (self.UDP_IP, self.UDP_PORT))
+            print "  UDP {0}::{1} Shutdown".format(self.UDP_IP, self.UDP_PORT)
 
     #######################################################
 
@@ -196,4 +197,4 @@ class Consumer:
         # for this routine, the data merely needs to be re-sent on the UDP connection
         # A data validity check may be good to add in the future
         self.sock.sendto(body,(self.remoteIP, self.UDP_PORT))
-        print(" [x] %r" % body)
+        print " [x] {}".format(body)

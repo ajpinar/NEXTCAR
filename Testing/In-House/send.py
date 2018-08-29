@@ -28,7 +28,8 @@ try:
     import struct       ##  Used to pack data for transmission
 
 except Exception as ex:
-    print(ex)
+    print ex
+    exit()
 
 ###########################################################
 
@@ -79,7 +80,7 @@ def fullSend( sl, rg, serverIP = None, creds = None, xch = None, rtk = None):
                               routing_key = rtk,                ##  using routing key rtk,
                               body = struct.pack('!id',sl,rg))  ##  publish, a message that
                                                                 ##  contains speed limit and road grade
-        print(' [x] %s Sent' % struct.pack('!id',sl,rg))        ##  Print the message
+        print ' [x] {} Sent'.format(struct.pack('!id',sl,rg))   ##  Print the message
     except KeyboardInterrupt:
         exit()                                                  ##  Exeunt
 

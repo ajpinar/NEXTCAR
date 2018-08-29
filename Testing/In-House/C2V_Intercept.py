@@ -38,7 +38,8 @@ try:
     import sys          ##  Used for testing
 
 except Exception as ex:
-    print(ex)
+    print ex
+    exit()
 
 ###########################################################
 
@@ -72,7 +73,12 @@ try:
         LOGNAME = datum[1]
         ROUTING_KEY = datum[2]
         params = pika.URLParameters(SERVERIP)
-        print( SERVERIP, LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+        
+        print SERVERIP
+        print LOGNAME
+        print ROUTING_KEY
+        print '\n'
+        
     elif len(datum) is 4:
         credA = datum[1][0]
         credB = datum[1][1]
@@ -87,18 +93,27 @@ try:
                                            virtual_host = '/',
                                            credentials = CREDENTIALS)
                                            
-        print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+        print SERVERIP
+        print '({0}, {1})'.format(credA, credB)
+        print LOGNAME
+        print ROUTING_KEY
+        print '\n'
+        
     else:
         # shouldn't even be possible
-        print('What?')
+        print 'What?'
 except:
-    print('Proceeding with default connection information:\n')
+    print 'Proceeding with default connection information:\n'
     params = pika.ConnectionParameters(host = SERVERIP,
                                        port = 5672,
                                        virtual_host = '/',
                                        credentials = CREDENTIALS)
-    
-    print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+
+    print SERVERIP
+    print '({0}, {1})'.format(credA, credB)
+    print LOGNAME
+    print ROUTING_KEY
+    print '\n'
 
 ##  Create a connection
 connection = pika.BlockingConnection(params)
@@ -118,7 +133,7 @@ channel.queue_bind(exchange = LOGNAME,
                    queue = q.method.queue,
                    routing_key = ROUTING_KEY)
 
-print(' [*] Waiting for packets...')
+print ' [*] Waiting for packets...'
 
 ##  Define a consumption
 channel.basic_consume(callback,
@@ -142,7 +157,7 @@ def callback(ch, method, properties, body):
 
     filename = getTheDate()             ##  Create file to dump data
 
-    print(' [x] %s\n\n' % body)         ##  Print to console
+    print ' [x] {}\n\n'.format(body)    ##  Print to console
 
     with open(filename,'w') as file:    ##  Open file specificed
         file.write(sanitizedBody)       ##  Write data to file

@@ -1,3 +1,18 @@
+"""
+
+Author: Sam Celani
+
+File:   vehicleSim.py
+
+Description:
+
+    This file simulates a vehicle moving and sending GPS
+    data. It was used for testing Basha's demo GUI.
+    
+    It is part of the ARPA-E Project: NEXTCAR.
+    
+"""
+
 import pika
 import sys
 import time
@@ -11,7 +26,9 @@ freq = None
 SERVERIP = '141.219.181.216'    ##  Kuilin's server ip
 SERVERIP = '141.219.205.25'     ##  Sam's server IP
 SERVERIP = '166.152.103.250'    ##  Mobile lab
-CREDENTIALS = pika.PlainCredentials('aps-lab', 'aps-lab')       ##  username/password, must be setup on server
+credA = 'aps-lab'               ##  Username
+credB = 'aps-lab'               ##  Password
+CREDENTIALS = pika.PlainCredentials(credA, credB)       ##  username/password, must be setup on server
 LOGNAME = 'cacc_test_exchange'  ##  Exchange name
 ROUTING_KEY = 'cloud_cacc'      ##  Routing key
 
@@ -24,11 +41,11 @@ index = [ 2*np.pi*c/100 for c in range(100) ]
 
 if len(sys.argv) is 1:
     freq = default
-    print('To implement your own desired frequency, try "python [FILENAME].py [FREQ]"')
-    print('Proceeding with default frequency: %d' % default)
+    print 'To implement your own desired frequency, try "python [FILENAME].py [FREQ]"'
+    print 'Proceeding with default frequency: {}'.format(default)
 else:
     freq = int(sys.argv[1])
-    print('Proceeding with input frequency: %d' % freq )
+    print 'Proceeding with input frequency: {}'.format(freq)
 
 
 period = 1/freq
@@ -42,7 +59,12 @@ try:
         ROUTING_KEY = datum[1]
         LOGNAME = datum[2]
         PARAMS = pika.URLParameters(SERVERIP)
-        print( SERVERIP, LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+        
+        print SERVERIP
+        print LOGNAME
+        print ROUTING_KEY
+        print '\n'
+        
     elif len(datum) is 4:
         credA = datum[1][0]
         credB = datum[1][1]
@@ -58,7 +80,12 @@ try:
         ROUTING_KEY = datum[2]
         LOGNAME = datum[3]
 
-        print( SERVERIP, "("+credA+', '+credB+")", LOGNAME, ROUTING_KEY ,sep='\n',end='\n\n')
+        print SERVERIP
+        print '({0}, {1})'.format(credA, credB)
+        print LOGNAME
+        print ROUTING_KEY
+        print '\n'
+    
     else:
         pass
 except:
@@ -66,6 +93,12 @@ except:
                                        5672,
                                        '/',
                                        CREDENTIALS)
+
+    print SERVERIP
+    print '({0}, {1})'.format(credA, credB)
+    print LOGNAME
+    print ROUTING_KEY
+    print '\n'
 
 connection = pika.BlockingConnection(PARAMS)
 
@@ -92,7 +125,7 @@ while True:
                           routing_key = ROUTING_KEY,
                           body = message)
 
-    print(' [x] Sent message')
+    print ' [x] Sent message'
     
     if abs(i) >= len(index) or i is 0:
         add = add * -1

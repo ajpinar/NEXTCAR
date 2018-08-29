@@ -37,7 +37,8 @@ try:
     import struct       ##  Used for data unpacking     | 
 
 except Exception as ex:
-    print(ex)
+    print ex
+    exit()
 
 ###########################################################
 
@@ -117,12 +118,12 @@ def process(body):
                                     data[19],
                                     data[20])
 
-            print('CE data packet.')
-            print(type(body))
-            print('Old packet size:',len(body))
-            print('New packet size:',len(processed))
-            print('Old packet:',str(body))
-            print('New packet:',str(processed))
+            print 'CE data packet.'
+            print type(body)
+            print 'Old packet size: ' + str(len(body))
+            print 'New packet size: ' + str(len(processed))
+            print 'Old packet: ' + str(body)
+            print 'New packet: ' + str(processed)
 
                 
         elif len(body) is ( 8 * MEdataFormat.count('d') + 4 * MEdataFormat.count('i') ):        ##  Determine if the length matches the Mechanical data format
@@ -159,19 +160,19 @@ def process(body):
                                     data[19],
                                     data[20])
 
-            print('ME data packet.')
-            print(type(body))
-            print('Old packet size:',len(body))
-            print('New packet size:',len(processed))
-            print('Old packet:',str(body))
-            print('New packet:',str(processed))
+            print 'ME data packet.'
+            print type(body)
+            print 'Old packet size: ' + str(len(body))
+            print 'New packet size: ' + str(len(processed))
+            print 'Old packet: ' + str(body)
+            print 'New packet: ' + str(processed)
 
             
         else:       ##  This happens if the message matches neither data packet
-            print('Data packet format unknown.')
-            print(type(body))
-            print('Packet:',str(body))
-            print('Packet size:',len(body))
+            print 'Data packet format unknown.'
+            print type(body)
+            print 'Packet: ' + str(body)
+            print 'Packet size: ' + str(len(body))
 
     elif type(body) is str:     ##  This will happen if the message is a string
         
@@ -214,10 +215,10 @@ def process(body):
                         pdata[19],
                         pdata[20])
 
-            print('CE data packet.')
-            print(type(body))
-            print('New packet size:',len(processed))
-            print('Old packet:',str(body))
+            print 'CE data packet.'
+            print type(body)
+            print 'New packet size: ' + str(len(processed))
+            print 'Old packet: ' + str(body)
             
         elif len(body) is 2:                    ##  This is the ME data packet
             # ME data packet as string
@@ -255,23 +256,23 @@ def process(body):
                         pdata[19],
                         pdata[20])
 
-            print('ME data packet.')
-            print(type(body))
-            print('Old packet size:',len(body))
-            print('New packet size:',len(processed))
-            print('Old packet:',str(body))
-            print('New packet:',processed)
+            print 'ME data packet.'
+            print type(body)
+            print 'Old packet size: ' + str(len(body))
+            print 'New packet size: ' + str(len(processed))
+            print 'Old packet: ' + str(body)
+            print 'New packet: ' + str(processed)
 
         else:       ##  This literally shouldn't be possible, idk why I added this, -Sam
-            print('Data packet format unknown.')
-            print('This shouldn''t even be possible.')
-            print(body)
-            print(len(body),'characters')
+            print 'Data packet format unknown.'
+            print 'This shouldn''t even be possible.'
+            print body
+            print str(len(body)) + 'characters'
     else:           ##  This happens if the data packet is neither a string nor a byte stream
-        print('Data packet format unknown.')
-        print('Packet:',body)
-        print(type(body))
-        print(len(body))
+        print 'Data packet format unknown.'
+        print 'Packet:',body
+        print type(body)
+        print len(body)
 
     ##  The processed variable is only changed if a data format is known
     if not processed is None:       ##  If processed isn't still None, i.e. the data format is known and processed has a value

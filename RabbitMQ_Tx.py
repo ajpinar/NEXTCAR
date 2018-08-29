@@ -32,7 +32,8 @@ try:
     import threading    ##  Used for running the consumer in a seperate thread
     
 except Exception as ex:
-    print(ex)
+    print ex
+    exit()
 
 ###########################################################
 
@@ -78,8 +79,8 @@ class Publisher:
             ##  This is most likely my local server, should never actually be used  -Sam
             else:
                 self.params = pika.ConnectionParameters(self.serverip)
-                print('Warning: You are using a server without credentials.',end = ' ')
-                print('This is not recommended.')
+                print 'Warning: You are using a server without credentials.'
+                print 'This is not recommended.'
         else:
             self.params = pika.ConnectionParameters(self.serverip,
                                                     5672,
@@ -139,7 +140,7 @@ class Publisher:
         try:
             self.sock.settimeout(10.0)
             self.sock.bind((self.UDP_IP, self.UDP_PORT))
-            print("  UDP %s::%i Socket Bound" % (self.UDP_IP, self.UDP_PORT))
+            print "  UDP %s::%i Socket Bound".format(self.UDP_IP, self.UDP_PORT)
         
             while self.keep_running:
                 try:
@@ -148,7 +149,7 @@ class Publisher:
                     data, addr = self.sock.recvfrom(1024)           # buffer size is 1024 bytes
                 except socket.timeout as e:
                     if self.keep_running:
-                        print("  UDP %s::%i Timeout Occurred" % (self.UDP_IP, self.UDP_PORT))
+                        print "  UDP %s::%i Timeout Occurred".format(self.UDP_IP, self.UDP_PORT)
                     else:
                         pass
                 else:
@@ -158,7 +159,7 @@ class Publisher:
         finally:
             self.sock.shutdown(socket.SHUT_RDWR)
             self.sock.close()
-            print("  UDP %s::%i Shutdown" % (self.UDP_IP, self.UDP_PORT))
+            print "  UDP %s::%i Shutdown".format(self.UDP_IP, self.UDP_PORT)
 
     def callback(self, data):
         """
@@ -190,7 +191,7 @@ class Publisher:
         raw_data.insert(1,ip)                       ##  Add the IP
         raw_data.insert(6,'@')                      ##  Add @ as a delimiter
 
-        print(raw_data)
+        print raw_data
 
         ##  Pack new data up and prepare to send
         data_to_send = struct.pack(fmt2,
@@ -231,7 +232,7 @@ class Publisher:
                                    routing_key=self.routing_key,
                                    body=data_to_send)
 
-        print(' [x] Sent %r' % data_to_send)
+        print ' [x] Sent %r'.format(data_to_send)
 
         ##  Close connection
         self.connection.close()

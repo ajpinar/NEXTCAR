@@ -29,7 +29,8 @@ try:
     import time         ##  Used to sleep between sending messages
     
 except Exception as ex:
-    print(ex)
+    print ex
+    exit()
 
 ###########################################################
 
@@ -81,7 +82,7 @@ while True:
         ##  Send data over socket to UDP_PORT of MABX IP
         sock.sendto(body,  (remoteIP,  UDP_PORT) )
         ##  Print data
-        print(bytes(body))
+        print bytes(body)
         ##  Sleep for five seconds to avoid sending constant messages
         time.sleep(5)
     except KeyboardInterrupt:

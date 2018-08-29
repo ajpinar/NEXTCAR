@@ -28,7 +28,8 @@ try:
     import sys      ##  Used to see command line arguments
 
 except Exception as ex:
-    print(ex)
+    print ex
+    exit()
 
 ###########################################################
 
@@ -77,38 +78,38 @@ def init(param = None):
     if param is None:
         
         ##  Print this big ass thing if there's no given argument
-        print('Usage:: [FILENAME].py [PARAM]')
-        print('Param List...\n')
-        print('kuilin\t->\tThis sets the following variables:')
-        print('\t\tIP\t\t-> %s' % config['kuilin'] )
-        print('\t\tCred.\t\t-> ( %s, %s )' % ( config['credentials'][0], config['credentials'][1] ) )
-        print('\t\tRouting Key\t-> %s' % config['routing key_K'] )
-        print('\t\tExchange\t-> %s\n' % config['exchange'] )
+        print 'Usage:: [FILENAME].py [PARAM]'
+        print 'Param List...\n'
+        print 'kuilin\t->\tThis sets the following variables:'
+        print '\t\tIP\t\t-> {}'.format(config['kuilin'])
+        print '\t\tCred.\t\t-> ( {0}, {1} )'.format( config['credentials'][0], config['credentials'][1] )
+        print '\t\tRouting Key\t-> {}'.format(config['routing key_K'])
+        print '\t\tExchange\t-> {}\n'.format(config['exchange'])
         
-        print('beta\t->\tThis sets the following variables:')
-        print('\t\tIP\t\t-> %s' % config['beta'] )
-        print('\t\tCred.\t\t-> ( %s, %s )' % ( config['credentials'][0], config['credentials'][1] ) )
-        print('\t\tRouting Key\t-> %s' % config['routing key_B'] )
-        print('\t\tExchange\t-> %s\n' % config['exchange'] )
+        print 'beta\t->\tThis sets the following variables:'
+        print '\t\tIP\t\t-> {}'.format(config['beta'])
+        print '\t\tCred.\t\t-> ( {0}, {1} )'.format( config['credentials'][0], config['credentials'][1] )
+        print '\t\tRouting Key\t-> {}'.format(config['routing key_B'])
+        print '\t\tExchange\t-> {}\n'.format(config['exchange'])
 
-        print('sam\t->\tThis sets the following variables:')
-        print('\t\tIP\t\t-> %s' % config['localhost'] )
-        print('\t\tRouting Key\t-> %s' % config['routing key_S'] )
-        print('\t\tExchange\t-> %s\n' % config['exchange'] )
+        print 'sam\t->\tThis sets the following variables:'
+        print '\t\tIP\t\t-> {}'.format(config['localhost'])
+        print '\t\tRouting Key\t-> {}'.format(config['routing key_S'])
+        print '\t\tExchange\t-> {}\n'.format(config['exchange'])
 
-        print('mobile_lab\t->\tThis sets the following variables:')
-        print('\t\tIP\t\t-> %s' % config['mobile lab'] )
-        print('\t\tCred.\t\t-> ( %s, %s )' % ( config['credentials'][0], config['credentials'][1] ) )
-        print('\t\tRouting Key\t-> %s' % config['routing key_M'] )
-        print('\t\tExchange\t-> %s\n' % config['exchange'] )
+        print 'mobile_lab\t->\tThis sets the following variables:'
+        print '\t\tIP\t\t-> {}'.format(config['mobile lab'])
+        print '\t\tCred.\t\t-> ( {0}, {1} )'.format( config['credentials'][0], config['credentials'][1] )
+        print '\t\tRouting Key\t-> {}'.format(config['routing key_M'])
+        print '\t\tExchange\t-> {}\n'.format(config['exchange'])
 
-        print('tony_url\t->\tThis sets the following variables:')
-        print('\t\tIP\t\t-> %s' % config['tony url'] )
-        print('\t\tRouting Key\t-> %s' % config['routing key_T'] )
-        print('\t\tExchange\t-> %s\n' % config['exchange'] )
+        print 'tony_url\t->\tThis sets the following variables:'
+        print '\t\tIP\t\t-> {}'.format(config['tony url'])
+        print '\t\tRouting Key\t-> {}'.format(config['routing key_T'])
+        print '\t\tExchange\t-> {}\n'.format(config['exchange'])
 
-        print('override\t->\tThis allows you to input your own information')
-        print('\t\t\tConsider editing the file to contain custom information\n\n')
+        print 'override\t->\tThis allows you to input your own information'
+        print '\t\t\tConsider editing the file to contain custom information\n\n'
 
         ##  Prompt the user for input, and gracefully exits in case of a KeyboardInterrupt
         try:
@@ -137,7 +138,7 @@ def init(param = None):
     elif param.lower() == 'override' or param.lower() == 'ov':              ##  Override mode
 
         ##  Begin override mode
-        print('Press ENTER to skip any of the following fields.\n')
+        print 'Press ENTER to skip any of the following fields.\n'
         
         ip = input('What IP are you connecting to?\t')
         ##  if ip has 0 characters (is just an ENTER), append None
@@ -168,7 +169,7 @@ def init(param = None):
         else:
             ra.append(None)
 
-        print('\n')
+        print '\n'
 
     else:
         init()
