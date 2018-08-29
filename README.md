@@ -5,9 +5,5 @@ NOTE:	Any file that is imported into a different file will have a compiled compa
 		Updates to imported files will not take effect unless the .pyc companion file is deleted
 
 		
-Contact Author:		sacelani@mtu.edu
-
-sacelani@gmail.com
+Contact Author:		sacelani@mtu.edu, sacelani@gmail.com
 Contact Advisor:	ajpinar@mtu.edu
-					
-			
